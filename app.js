@@ -9,42 +9,27 @@ const DEFAULT_PROMPTS = [
   "Stand up and stretch.",
   "Drink a glass of water.",
   "It's okay to be bored.",
-  "Listen for the trees, the leaves, the wind.",
   "Rest is not wasted time.",
   "Put the phone down. It will still be here.",
 ];
 
-// Built-in prompts for the time of day on the phone's clock. The first
-// prompt after opening comes from here; later ones mix into the pool.
-const TIME_PROMPTS = {
-  morning: [
-    "Good morning. Close your eyes: what would make today a good day?",
-    "What's one thing you'd love to do today?",
-    "Before the day rushes in, take one slow breath.",
-  ],
-  afternoon: [
-    "How is your day going so far?",
-    "What's one thing left today that really matters?",
-    "Halfway through the day. Take a slow breath.",
-  ],
-  evening: [
-    "What did you do today? Name one good moment.",
-    "The day is winding down. What are you glad you did?",
-    "Evening now. Let the day slow down with you.",
-  ],
-  night: [
-    "It's late. What's one thing you're grateful for today?",
-    "The day is done. Let it go, and rest.",
-    "Put the screen away. Tomorrow can wait.",
-  ],
-};
+// Built-in prompts for the time of day on the phone's clock (not editable).
+// Within these hours the first prompt after opening comes from here, and
+// later ones mix into the pool; outside them only the user's list is used.
+const DAY_PROMPTS = [
+  "What's one thing you'd love to do today?",
+  "Close your eyes: what would make today a good day?",
+];
+const EVENING_PROMPTS = [
+  "What's one thing you're grateful for today?",
+  "Winding down. How was your day?",
+];
 
 function timePrompts(now = new Date()) {
   const h = now.getHours();
-  if (h >= 5 && h < 12) return TIME_PROMPTS.morning;
-  if (h >= 12 && h < 18) return TIME_PROMPTS.afternoon;
-  if (h >= 18 && h < 22) return TIME_PROMPTS.evening;
-  return TIME_PROMPTS.night;
+  if (h >= 5 && h < 15) return DAY_PROMPTS;
+  if (h >= 19) return EVENING_PROMPTS;
+  return [];
 }
 
 // ---- Storage ----
@@ -88,7 +73,7 @@ function randomFrom(list) {
 }
 
 function pickNext() {
-  if (current === null) return randomFrom(timePrompts());
+  if (current === null && timePrompts().length) return randomFrom(timePrompts());
   const pool = [...prompts, ...timePrompts()].filter((t) => t !== current);
   return pool.length ? randomFrom(pool) : current;
 }

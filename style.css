@@ -108,8 +108,8 @@ button {
 }
 
 .splash-logo {
-  width: 132px;
-  height: 132px;
+  width: 168px;
+  height: 168px;
   animation: splashIn 700ms ease both;
 }
 
@@ -118,18 +118,53 @@ button {
   font-family: ui-serif, "New York", Georgia, serif;
   font-size: 1.4rem;
   letter-spacing: 0.02em;
-  animation: fadeIn 700ms ease 400ms both;
+  animation: fadeIn 700ms ease 2.5s both;
 }
 
-.s-finger { animation: fingerUp 1.4s cubic-bezier(.3,.7,.3,1) 200ms both; }
-.s-drops  { animation: fadeIn 800ms ease 1s both; }
+/* Splash story (3s): finger scrolls a feed in rhythm, the umbrella pops
+   open, the next swipe bumps into it and settles into the logo. */
+.s-finger { animation: fingerScroll 2.8s ease-in-out both; }
+.s-feed   { animation: feedScroll 2.8s ease-in-out both; }
+.s-brella { animation: brellaOpen 2.8s both; transform-box: fill-box; transform-origin: 50% 0%; }
+.s-drops  { animation: fadeIn 600ms ease 2.4s both; }
 
 @keyframes splashIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fingerUp { from { transform: translate(18px, 60px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@keyframes fingerScroll {
+  0%, 3.6%  { transform: translateY(34px); }
+  12.5%     { transform: translateY(-6px); }
+  21.4%     { transform: translateY(34px); }
+  30.4%     { transform: translateY(-6px); }
+  39.3%     { transform: translateY(34px); }
+  48.2%     { transform: translateY(-6px); }
+  57.1%, 75% { transform: translateY(34px); }
+  83.9%     { transform: translateY(-3px); }
+  89.3%     { transform: translateY(8px); }
+  100%      { transform: none; }
+}
+
+@keyframes feedScroll {
+  0%, 3.6%   { transform: translateY(0);      opacity: 1; }
+  12.5%, 21.4% { transform: translateY(-48px);  opacity: 1; }
+  30.4%, 39.3% { transform: translateY(-96px);  opacity: 1; }
+  48.2%, 57.1% { transform: translateY(-144px); opacity: 1; }
+  75%, 100%  { transform: translateY(-144px); opacity: 0; }
+}
+
+@keyframes brellaOpen {
+  0%, 57.1% { transform: translateY(-50px) scale(.15, .5); opacity: 0; }
+  60%       { opacity: 1; }
+  66%       { transform: translateY(0) scale(1.12, .95); animation-timing-function: ease-out; }
+  72%       { transform: scale(.97, 1.02); }
+  78%, 83.9% { transform: none; }
+  87%       { transform: translateY(-3px) rotate(-2deg); }
+  93%, 100% { transform: none; opacity: 1; }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .splash-logo, .splash-name, .s-finger, .s-drops { animation: none; }
+  .splash-logo, .splash-name, .s-finger, .s-feed, .s-brella, .s-drops { animation: none; }
+  .s-feed { opacity: 0; }
 }
 
 /* ---- Editor ---- */

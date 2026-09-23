@@ -176,4 +176,4 @@ function endSplash() {
 }
 
 splash.addEventListener("click", endSplash);
-setTimeout(endSplash, 2600);
+setTimeout(endSplash, 4200);

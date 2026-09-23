@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" href="icons/icon-180-v2.png">
   <link rel="icon" type="image/png" href="icons/icon-192-v2.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <div id="splash" aria-hidden="true">
@@ -28,7 +28,6 @@
           <rect x="-13" y="44" width="46" height="44" rx="15" fill="var(--text)"/>
           <path d="M10 56 h14 M10 67 h14 M10 78 h12" stroke="var(--red)" stroke-width="2.4" stroke-linecap="round" opacity=".45"/>
         </g>
-        <path id="chev" d="M-5 3 L0 -3 L5 3" fill="none" stroke="var(--text)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
       </defs>
       <clipPath id="tile"><rect width="200" height="200" rx="44"/></clipPath>
       <rect width="200" height="200" rx="44" fill="var(--red)"/>
@@ -44,22 +43,24 @@
           <rect x="44" y="306" width="112" height="38" rx="9"/>
         </g>
       </g>
-      <g class="s-drops" opacity=".7">
-        <use href="#chev" x="46" y="36"/>
-        <use href="#chev" x="150" y="44"/>
-        <use href="#chev" x="164" y="80"/>
-        <use href="#chev" x="30" y="72"/>
-      </g>
-      <g transform="translate(96 92) rotate(-10)">
+      <g transform="translate(84 92) rotate(38)">
         <g class="s-brella">
           <path d="M-50 0 A50 50 0 0 1 50 0 Q41.7 -10 33.3 0 Q25 -10 16.7 0 Q8.3 -10 0 0 Q-8.3 -10 -16.7 0 Q-25 -10 -33.3 0 Q-41.7 -10 -50 0 Z" fill="var(--text)"/>
-          <path d="M0 -50 V-58 M0 0 V56 A10 10 0 0 1 -20 56" fill="none" stroke="var(--text)" stroke-width="5" stroke-linecap="round"/>
+          <path d="M0 -50 V-58 M0 0 V50 A10 10 0 0 1 -20 50" fill="none" stroke="var(--text)" stroke-width="5" stroke-linecap="round"/>
         </g>
       </g>
-      <g class="s-finger">
-        <g transform="translate(124 96) rotate(-8) scale(.72)">
-          <use href="#hand"/>
+      <g clip-path="url(#tile)">
+        <g class="s-speed" stroke="var(--text)" stroke-width="3" stroke-linecap="round">
+          <path d="M150 160 L168 176"/><path d="M164 146 L182 162"/><path d="M140 172 L152 184"/>
         </g>
+        <g class="s-finger">
+          <g transform="translate(122 112) rotate(-42) scale(.72)">
+            <use href="#hand"/>
+          </g>
+        </g>
+      </g>
+      <g class="s-burst">
+        <path d="M118 108 m0 -18 l4 10 l10 -6 l-4 10 l11 3 l-10 5 l6 9 l-11 -3 l-2 11 l-5 -9 l-7 8 l0 -11 l-11 1 l8 -8 l-9 -6 l11 -2 l-4 -10 l10 5 z" fill="#ffd166" stroke="var(--text)" stroke-width="1.5" stroke-linejoin="round" transform="translate(-3 3)"/>
       </g>
     </svg>
     <p class="splash-name">Scrollbrella</p>
@@ -102,6 +103,6 @@
     <p class="credits">Music: <i>Gymnopédie No. 1</i> by Erik Satie, performed by Robin Alciatore. Public domain, courtesy of Musopen.</p>
   </section>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

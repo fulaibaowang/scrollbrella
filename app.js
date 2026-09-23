@@ -140,15 +140,18 @@ function playIfWanted() {
   if (wantMusic && music.paused) music.play().catch(() => {});
 }
 
-musicBtn.addEventListener("click", () => {
-  wantMusic = !wantMusic;
+function setWantMusic(on) {
+  wantMusic = on;
   try {
-    localStorage.setItem(MUSIC_KEY, wantMusic ? "on" : "off");
+    localStorage.setItem(MUSIC_KEY, on ? "on" : "off");
   } catch {}
   renderMusicBtn();
-  if (wantMusic) playIfWanted();
+  if (on) playIfWanted();
   else music.pause();
-});
+}
+
+musicBtn.addEventListener("click", () => setWantMusic(!wantMusic));
+music.addEventListener("play", () => musicBtn.classList.remove("nudge"));
 
 document.addEventListener("click", (e) => {
   if (e.target.closest("#music-toggle, #editor")) return;
@@ -165,7 +168,12 @@ renderMusicBtn();
 // ---- Splash (once per launch) ----
 
 const splash = document.getElementById("splash");
+const splashMusic = document.getElementById("splash-music");
 let splashDone = false;
+
+// Offer music on the splash unless the user has turned it off.
+splashMusic.hidden = !wantMusic;
+splashMusic.addEventListener("click", () => setWantMusic(true));
 
 function endSplash() {
   if (splashDone) return;
@@ -173,7 +181,10 @@ function endSplash() {
   splash.classList.add("gone");
   setTimeout(() => splash.remove(), 700);
   showNext();
+  setTimeout(() => {
+    if (wantMusic && music.paused) musicBtn.classList.add("nudge");
+  }, 1200);
 }
 
 splash.addEventListener("click", endSplash);
-setTimeout(endSplash, 4200);
+setTimeout(endSplash, splashMusic.hidden ? 4200 : 6500);

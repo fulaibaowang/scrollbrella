@@ -256,9 +256,10 @@ const splash = document.getElementById("splash");
 const splashHint = document.getElementById("splash-music");
 let splashDone = false;
 
-// The splash waits on its last frame until the user taps. That tap also
-// counts as the gesture iOS needs to start music.
-if (!wantMusic) splashHint.querySelector("svg").remove();
+// After the story the splash waits on a big music button. Tapping it turns
+// music on (the tap is the gesture iOS needs); tapping anywhere else just
+// continues, playing music only if it's already switched on.
+splashHint.addEventListener("click", () => setWantMusic(true));
 
 function endSplash() {
   if (splashDone) return;

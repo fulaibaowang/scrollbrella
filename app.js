@@ -2,6 +2,8 @@ const LEGACY_PROMPTS_KEY = "scrollbrella.prompts"; // one flat list, before feel
 const SETS_KEY = "scrollbrella.promptSets";
 const WINDOWS_KEY = "scrollbrella.timeWindows";
 const LISTS_KEY = "scrollbrella.lists";
+const UPDATED_KEY = "scrollbrella.updatedAt"; // when settings last changed on this device
+const SYNC_KEY = "scrollbrella.sync"; // {token, gistId, lastSync}
 
 // Each visit shows one feeling, then one small moment ("act"), then the
 // closing line. Feelings come first: it's fine to do nothing at all.
@@ -128,13 +130,16 @@ function strings(list) {
   return Array.isArray(list) ? cleanList(list.filter((t) => typeof t === "string")) : [];
 }
 
+function parseSets(saved) {
+  if (!saved || typeof saved !== "object") return null;
+  const sets = { feel: strings(saved.feel), act: strings(saved.act) };
+  return sets.feel.length || sets.act.length ? sets : null;
+}
+
 function loadSets() {
   try {
-    const saved = JSON.parse(localStorage.getItem(SETS_KEY));
-    if (saved && typeof saved === "object") {
-      const sets = { feel: strings(saved.feel), act: strings(saved.act) };
-      if (sets.feel.length || sets.act.length) return sets;
-    }
+    const sets = parseSets(JSON.parse(localStorage.getItem(SETS_KEY)));
+    if (sets) return sets;
     // Migrate a customised flat list from before feelings/actions.
     const legacy = strings(JSON.parse(localStorage.getItem(LEGACY_PROMPTS_KEY)));
     if (legacy.length && !OLD_DEFAULTS.some((old) => sameList(old, legacy))) {
@@ -173,14 +178,17 @@ function sameWindows(a, b) {
   );
 }
 
+function parseWindows(saved) {
+  if (!Array.isArray(saved)) return null;
+  return saved
+    .filter((w) => Number.isInteger(w?.start) && Number.isInteger(w?.end) && Array.isArray(w.prompts))
+    .map((w) => ({ start: w.start, end: w.end, prompts: strings(w.prompts) }));
+}
+
 function loadWindows() {
   try {
-    const saved = JSON.parse(localStorage.getItem(WINDOWS_KEY));
-    if (Array.isArray(saved)) {
-      return saved
-        .filter((w) => Number.isInteger(w?.start) && Number.isInteger(w?.end) && Array.isArray(w.prompts))
-        .map((w) => ({ start: w.start, end: w.end, prompts: cleanList(w.prompts.filter((t) => typeof t === "string")) }));
-    }
+    const windows = parseWindows(JSON.parse(localStorage.getItem(WINDOWS_KEY)));
+    if (windows) return windows;
   } catch {
     // Fall back to defaults.
   }
@@ -196,22 +204,27 @@ function saveWindows(windows) {
   }
 }
 
+function parseLists(saved) {
+  if (Array.isArray(saved)) {
+    return saved
+      .filter((l) => typeof l?.title === "string")
+      .map((l) => ({ title: l.title.trim() || "Untitled", items: strings(l.items) }));
+  }
+  if (saved && typeof saved === "object") {
+    // First version stored three fixed lists by key.
+    return [
+      { title: "My books", items: strings(saved.books) },
+      { title: "My movies & series", items: strings(saved.shows) },
+      { title: "My dreams", items: strings(saved.dreams) },
+    ];
+  }
+  return null;
+}
+
 function loadLists() {
   try {
-    const saved = JSON.parse(localStorage.getItem(LISTS_KEY));
-    if (Array.isArray(saved)) {
-      return saved
-        .filter((l) => typeof l?.title === "string")
-        .map((l) => ({ title: l.title.trim() || "Untitled", items: strings(l.items) }));
-    }
-    if (saved && typeof saved === "object") {
-      // First version stored three fixed lists by key.
-      return [
-        { title: "My books", items: strings(saved.books) },
-        { title: "My movies & series", items: strings(saved.shows) },
-        { title: "My dreams", items: strings(saved.dreams) },
-      ];
-    }
+    const lists = parseLists(JSON.parse(localStorage.getItem(LISTS_KEY)));
+    if (lists) return lists;
   } catch {
     // Start from the defaults.
   }
@@ -440,6 +453,7 @@ document.getElementById("lists-cancel").addEventListener("click", () => setLists
 document.getElementById("lists-done").addEventListener("click", () => {
   lists = editedLists(listsView);
   saveLists(lists);
+  markChanged();
   setListsMode(false);
 });
 
@@ -653,6 +667,7 @@ document.getElementById("done").addEventListener("click", () => {
   saveWindows(timeWindows);
   lists = editedLists(editLists);
   saveLists(lists);
+  markChanged();
   editor.hidden = true;
   restartVisit();
 });
@@ -675,6 +690,198 @@ copyBtn.addEventListener("click", async () => {
   }
   setTimeout(() => (copyBtn.textContent = "Copy all"), 1500);
 });
+
+// ---- Sync across devices (GitHub Gist) ----
+// Optional and just for fun: settings are mirrored to a secret Gist using a
+// personal access token (Gists: read & write only) pasted on each device.
+// Whichever side changed most recently wins.
+
+const GIST_FILE = "scrollbrella-settings.json";
+const syncOff = document.getElementById("sync-off");
+const syncOn = document.getElementById("sync-on");
+const syncStatus = document.getElementById("sync-status");
+const syncToken = document.getElementById("sync-token");
+let sync = null;
+let syncing = false;
+let syncTimer = null;
+
+try {
+  sync = JSON.parse(localStorage.getItem(SYNC_KEY));
+} catch {}
+
+function saveSync() {
+  try {
+    if (sync) localStorage.setItem(SYNC_KEY, JSON.stringify(sync));
+    else localStorage.removeItem(SYNC_KEY);
+  } catch {}
+}
+
+function localUpdatedAt() {
+  try {
+    return Number(localStorage.getItem(UPDATED_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function markChanged() {
+  try {
+    localStorage.setItem(UPDATED_KEY, String(Date.now()));
+  } catch {}
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(syncNow, 800);
+}
+
+function snapshot() {
+  return { app: "scrollbrella", version: 1, updatedAt: localUpdatedAt(), promptSets: prompts, timeWindows, lists };
+}
+
+async function gh(path, options = {}) {
+  const res = await fetch(`https://api.github.com${path}`, {
+    ...options,
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${sync.token}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+    },
+  });
+  if (!res.ok) throw Object.assign(new Error(`GitHub ${res.status}`), { status: res.status });
+  return res.json();
+}
+
+async function findGist() {
+  for (let page = 1; page <= 5; page++) {
+    const gists = await gh(`/gists?per_page=100&page=${page}`);
+    const match = gists.find((g) => g.files?.[GIST_FILE]);
+    if (match) return match.id;
+    if (gists.length < 100) break;
+  }
+  return null;
+}
+
+async function readGist(id) {
+  const gist = await gh(`/gists/${id}`);
+  return JSON.parse(gist.files[GIST_FILE].content);
+}
+
+async function writeGist(id, data) {
+  const files = { [GIST_FILE]: { content: JSON.stringify(data, null, 2) } };
+  if (id) return gh(`/gists/${id}`, { method: "PATCH", body: JSON.stringify({ files }) });
+  return gh("/gists", {
+    method: "POST",
+    body: JSON.stringify({ description: "Scrollbrella settings (synced by the app)", public: false, files }),
+  });
+}
+
+// Replace local settings with the Gist's copy.
+function applyRemote(remote) {
+  prompts = parseSets(remote.promptSets) || cloneSets(DEFAULT_SETS);
+  timeWindows = parseWindows(remote.timeWindows) || structuredClone(DEFAULT_WINDOWS);
+  lists = parseLists(remote.lists) || structuredClone(DEFAULT_LISTS);
+  saveSets(prompts);
+  saveWindows(timeWindows);
+  saveLists(lists);
+  try {
+    localStorage.setItem(UPDATED_KEY, String(remote.updatedAt));
+  } catch {}
+}
+
+function renderSync(message) {
+  const connected = Boolean(sync?.token);
+  syncOff.hidden = connected;
+  syncOn.hidden = !connected;
+  if (!connected) return;
+  syncStatus.replaceChildren();
+  const when = sync.lastSync
+    ? new Date(sync.lastSync).toLocaleString([], { dateStyle: "short", timeStyle: "short" })
+    : "not yet";
+  syncStatus.append(message || `Synced ${when}`);
+  if (sync.gistId) {
+    const link = document.createElement("a");
+    link.href = `https://gist.github.com/${sync.gistId}`;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "view Gist";
+    syncStatus.append(" · ", link);
+  }
+}
+
+// Returns true when the Gist's settings replaced the local ones.
+async function syncNow() {
+  if (!sync?.token || syncing || !navigator.onLine) return false;
+  syncing = true;
+  let applied = false;
+  renderSync("Syncing…");
+  try {
+    if (!sync.gistId) sync.gistId = await findGist();
+    if (!sync.gistId) {
+      sync.gistId = (await writeGist(null, snapshot())).id;
+    } else {
+      let remote;
+      try {
+        remote = await readGist(sync.gistId);
+      } catch (err) {
+        if (err.status !== 404) throw err;
+        sync.gistId = (await writeGist(null, snapshot())).id; // Gist was deleted: start a new one
+      }
+      if (remote) {
+        const theirs = Number(remote.updatedAt) || 0;
+        const ours = localUpdatedAt();
+        if (theirs > ours) {
+          applyRemote(remote);
+          applied = true;
+        } else if (ours > theirs) {
+          await writeGist(sync.gistId, snapshot());
+        }
+      }
+    }
+    sync.lastSync = Date.now();
+    saveSync();
+    renderSync();
+  } catch (err) {
+    renderSync(err.status === 401 || err.status === 403 ? "GitHub rejected the token" : "Couldn't reach GitHub");
+  } finally {
+    syncing = false;
+  }
+  return applied;
+}
+
+// Sync quietly in the background, but never under the user's fingers.
+async function backgroundSync() {
+  if (!editor.hidden || !listsSheet.hidden) return;
+  if ((await syncNow()) && splashDone && step < 3) restartVisit();
+}
+
+document.getElementById("sync-connect").addEventListener("click", async () => {
+  const token = syncToken.value.trim();
+  if (!token) return syncToken.focus();
+  sync = { token, gistId: null, lastSync: 0 };
+  saveSync();
+  syncToken.value = "";
+  if (await syncNow()) {
+    fillEditor(prompts);
+    fillWindows(timeWindows);
+    fillListEditors(editLists, lists);
+  }
+});
+
+document.getElementById("sync-now").addEventListener("click", async () => {
+  if (await syncNow()) {
+    fillEditor(prompts);
+    fillWindows(timeWindows);
+    fillListEditors(editLists, lists);
+  }
+});
+
+document.getElementById("sync-disconnect").addEventListener("click", () => {
+  if (!confirm("Stop syncing on this device? Your settings and the Gist stay as they are.")) return;
+  sync = null;
+  saveSync();
+  renderSync();
+});
+
+renderSync();
 
 // ---- Music ----
 // Music only starts from an explicit choice: the big circle on the splash or
@@ -715,6 +922,7 @@ document.addEventListener("visibilitychange", () => {
     return;
   }
   if (resumeOnReturn) playMusic();
+  backgroundSync();
   if (splashDone && editor.hidden && listsSheet.hidden && Date.now() - hiddenAt > AWAY_RESET_MS) restartVisit();
 });
 
@@ -739,6 +947,10 @@ function endSplash() {
 }
 
 splash.addEventListener("click", endSplash);
+
+// ---- Startup sync ----
+
+backgroundSync();
 
 // ---- Offline ----
 

@@ -160,6 +160,29 @@ body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
 .list-title:focus { outline: none; border-color: var(--muted); }
 .list-title::placeholder { color: var(--muted); font-weight: 400; }
 
+.sync-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sync-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--text);
+  font: 16px -apple-system, system-ui, sans-serif; /* 16px stops iOS zoom-on-focus */
+}
+
+.sync-input:focus { outline: none; border-color: var(--muted); }
+
+#sync-off[hidden], #sync-on[hidden] { display: none; }
+
+.time-section a { color: var(--text); }
+
 .list-card {
   margin: 0 0 8px;
   padding: 11px 14px;

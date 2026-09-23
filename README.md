@@ -6,7 +6,8 @@
 
 - Calm prompts you write yourself, plus time-of-day ones (morning plans, evening reflection)
 - Soft piano (Satie, public domain) with one tap
-- Works offline, no account, no tracking; everything stays on your phone
+- Works offline, no account, no tracking; everything stays on your device
+- Optional sync between devices through a secret Gist on your own GitHub account
 
 **Open it:** https://fulaibaowang.github.io/scrollbrella/
 

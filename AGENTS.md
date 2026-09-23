@@ -39,6 +39,10 @@ Live: https://fulaibaowang.github.io/scrollbrella/
 | `scrollbrella.prompts` | Legacy flat list; migrated into sets (known actions → `act`) and removed on next save |
 | `scrollbrella.lists` | `[{title, items}]`: "Things I could do" lists (user can add/rename/delete lists); editable from the lists sheet (✎ Edit) and the main editor. Old `{books, shows, dreams}` shape is migrated on load |
 | `scrollbrella.timeWindows` | `[{start, end, prompts}]` hours 0–24, may cross midnight; only stored when customised |
+| `scrollbrella.updatedAt` | When settings last changed on this device (ms); used by sync |
+| `scrollbrella.sync` | Optional Gist sync: `{token, gistId, lastSync}` |
+
+Optional sync mirrors prompt sets, time windows and lists to a secret Gist file `scrollbrella-settings.json` via the GitHub API (fine-grained token with Gists read/write, pasted per device). Last change wins by `updatedAt`. Syncs on launch, on return to the app, and after saving; never while the editor or lists sheet is open. Call `markChanged()` after any new settings save.
 
 Every storage access is wrapped in `try/catch`; the app must work without storage. A visit is deliberately short (the opposite of a feed): feeling (0 s) → small moment from `act` + active time-window prompts (15 s) → closing line (30 s) → dim (40 s). Auto-advance uses `ADVANCE_MS`/`DIM_AFTER_MS` (no visible countdown); a tap skips ahead; paused while the editor is open. Nothing re-brightens on its own. A tap after the visit shows a red heart + "It's okay to do nothing." and a tiny "things I could do" link to the lists sheet. Returning after 60 s away, or saving in the editor, starts a fresh visit.
 

@@ -158,6 +158,23 @@
         <p class="hint">Decided in advance, so there's nothing to search for. Shown only if you ask, after a visit.</p>
         <div id="edit-lists"></div>
       </div>
+      <div class="time-section">
+        <h3>Sync across devices</h3>
+        <div id="sync-off">
+          <p class="hint">Keep prompts and lists the same on all your devices, stored in a secret Gist on your GitHub account. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a> with only <b>Gists: Read and write</b> (and an expiry), then paste it here on each device.</p>
+          <div class="sync-row">
+            <input id="sync-token" class="sync-input" type="password" placeholder="github_pat_…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="GitHub token">
+            <button id="sync-connect" class="btn">Connect</button>
+          </div>
+        </div>
+        <div id="sync-on" hidden>
+          <p id="sync-status" class="hint"></p>
+          <div class="sync-row">
+            <button id="sync-now" class="btn">Sync now</button>
+            <button id="sync-disconnect" class="btn">Disconnect</button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="editor-actions">
       <button id="copy" class="btn">Copy all</button>

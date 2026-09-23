@@ -146,13 +146,6 @@ button {
   50%      { box-shadow: 0 0 18px 2px rgba(242, 232, 216, 0.18); border-color: var(--muted); }
 }
 
-/* Corner note icon glows a few times if music hasn't started yet */
-#music-toggle.nudge { animation: nudge 2.4s ease-in-out 3; }
-@keyframes nudge {
-  0%, 100% { opacity: 0.35; transform: none; }
-  50%      { opacity: 0.9;  transform: scale(1.12); }
-}
-
 /* Splash story (2.8s): the finger scrolls a feed in rhythm, the umbrella
    pops open as a shield, and the next swipe crashes into it. */
 .s-feed   { animation: feedScroll 2.8s ease-in-out both; }
@@ -212,7 +205,7 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .splash-logo, .splash-name, .s-finger, .s-feed, .s-brella, .s-speed, .s-burst, .splash-music, #music-toggle.nudge { animation: none; }
+  .splash-logo, .splash-name, .s-finger, .s-feed, .s-brella, .s-speed, .s-burst, .splash-music { animation: none; }
   .s-feed { opacity: 0; }
   .s-speed { opacity: .6; }
 }
@@ -253,22 +246,83 @@ button {
   font-size: 0.9rem;
 }
 
-#prompts-text {
+.editor-head .hint { margin-top: 2px; }
+
+.editor-scroll {
   flex: 1;
   min-height: 0;
-  width: 100%;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.18);
-  color: var(--text);
-  font: 16px/1.6 -apple-system, system-ui, sans-serif; /* 16px stops iOS zoom-on-focus */
-  resize: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  margin: 0 -4px;
+  padding: 4px;
 }
 
-#prompts-text:focus {
-  outline: none;
-  border-color: var(--muted);
+.prompt-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prompt-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 4px 4px 4px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.18);
+  transition: border-color 200ms ease;
+}
+
+.prompt-item:focus-within { border-color: var(--muted); }
+
+.prompt-input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: 16px/1.45 -apple-system, system-ui, sans-serif; /* 16px stops iOS zoom-on-focus */
+  resize: none;
+  overflow: hidden;
+}
+
+.prompt-input:focus { outline: none; }
+.prompt-input::placeholder { color: var(--muted); }
+
+.prompt-remove {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  opacity: 0.45;
+}
+
+.prompt-remove svg { width: 16px; height: 16px; }
+
+.add-prompt {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.tip {
+  margin: 10px 2px 4px;
+  font-size: 0.8rem;
 }
 
 .editor-actions {

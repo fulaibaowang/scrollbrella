@@ -1,6 +1,5 @@
 const STORAGE_KEY = "scrollbrella.prompts";
 const MUSIC_KEY = "scrollbrella.music";
-const BLANK_PAUSE_MS = 2000;
 
 const DEFAULT_PROMPTS = [
   "Breathe in slowly. Breathe out slower.",
@@ -75,23 +74,109 @@ function showNext() {
 stage.addEventListener("click", showNext);
 
 // ---- Editor ----
+// One card per prompt. Edits stay in the cards until Done; Cancel discards.
 
 const editor = document.getElementById("editor");
-const textArea = document.getElementById("prompts-text");
+const list = document.getElementById("prompt-list");
+const countEl = document.getElementById("prompt-count");
 const copyBtn = document.getElementById("copy");
 
+function autoGrow(input) {
+  input.style.height = "auto";
+  input.style.height = `${input.scrollHeight}px`;
+}
+
+function editorValues() {
+  return cleanList([...list.querySelectorAll(".prompt-input")].map((el) => el.value));
+}
+
+function updateCount() {
+  const n = editorValues().length;
+  countEl.textContent = n === 0 ? "No prompts yet, so the defaults will be used" : `${n} prompt${n === 1 ? "" : "s"}`;
+}
+
+function makeItem(text) {
+  const li = document.createElement("li");
+  li.className = "prompt-item";
+
+  const input = document.createElement("textarea");
+  input.className = "prompt-input";
+  input.rows = 1;
+  input.value = text;
+  input.placeholder = "Write a prompt…";
+  input.enterKeyHint = "next";
+  input.setAttribute("autocapitalize", "sentences");
+  input.setAttribute("aria-label", "Prompt");
+
+  // Return starts a new prompt below instead of adding a line break.
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.isComposing) {
+      e.preventDefault();
+      addItem("", li);
+    }
+  });
+
+  // Pasting a copied list splits it into one card per line.
+  input.addEventListener("input", () => {
+    if (input.value.includes("\n")) {
+      const [first, ...rest] = input.value.split("\n");
+      input.value = first;
+      let after = li;
+      for (const line of cleanList(rest)) after = addItem(line, after, false);
+    }
+    autoGrow(input);
+    updateCount();
+  });
+
+  const remove = document.createElement("button");
+  remove.className = "prompt-remove";
+  remove.setAttribute("aria-label", "Delete prompt");
+  remove.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  remove.addEventListener("click", () => {
+    li.remove();
+    updateCount();
+  });
+
+  li.append(input, remove);
+  return li;
+}
+
+function addItem(text, after = null, focus = true) {
+  const li = makeItem(text);
+  if (after) after.after(li);
+  else list.append(li);
+  const input = li.querySelector(".prompt-input");
+  autoGrow(input);
+  if (focus) {
+    input.focus();
+    li.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  updateCount();
+  return li;
+}
+
+function fillEditor(items) {
+  list.replaceChildren();
+  for (const text of items) addItem(text, null, false);
+  updateCount();
+}
+
 document.getElementById("edit-open").addEventListener("click", () => {
-  textArea.value = prompts.join("\n");
-  editor.hidden = false;
+  editor.hidden = false; // visible first so cards can measure their height
+  fillEditor(prompts);
+  list.scrollTop = 0;
 });
+
+document.getElementById("add-prompt").addEventListener("click", () => addItem(""));
 
 document.getElementById("cancel").addEventListener("click", () => {
   editor.hidden = true;
 });
 
 document.getElementById("done").addEventListener("click", () => {
-  const list = cleanList(textArea.value.split("\n"));
-  prompts = list.length ? list : DEFAULT_PROMPTS.slice();
+  const items = editorValues();
+  prompts = items.length ? items : DEFAULT_PROMPTS.slice();
   savePrompts(prompts);
   editor.hidden = true;
   current = -1;
@@ -99,19 +184,19 @@ document.getElementById("done").addEventListener("click", () => {
 });
 
 document.getElementById("restore").addEventListener("click", () => {
-  if (confirm("Replace the text with the default prompts? (Nothing is saved until you tap Done.)")) {
-    textArea.value = DEFAULT_PROMPTS.join("\n");
+  if (confirm("Replace your list with the default prompts? (Nothing is saved until you tap Done.)")) {
+    fillEditor(DEFAULT_PROMPTS);
   }
 });
 
 copyBtn.addEventListener("click", async () => {
+  const text = editorValues().join("\n");
   try {
-    await navigator.clipboard.writeText(textArea.value);
+    await navigator.clipboard.writeText(text);
+    copyBtn.textContent = "Copied";
   } catch {
-    textArea.select();
-    document.execCommand("copy");
+    copyBtn.textContent = "Couldn't copy";
   }
-  copyBtn.textContent = "Copied";
   setTimeout(() => (copyBtn.textContent = "Copy all"), 1500);
 });
 
@@ -152,7 +237,6 @@ function setWantMusic(on) {
 }
 
 musicBtn.addEventListener("click", () => setWantMusic(!wantMusic));
-music.addEventListener("play", () => musicBtn.classList.remove("nudge"));
 
 document.addEventListener("click", (e) => {
   if (e.target.closest("#music-toggle, #editor")) return;
@@ -169,26 +253,25 @@ renderMusicBtn();
 // ---- Splash (once per launch) ----
 
 const splash = document.getElementById("splash");
-const splashMusic = document.getElementById("splash-music");
+const splashHint = document.getElementById("splash-music");
 let splashDone = false;
 
-// Offer music on the splash unless the user has turned it off.
-splashMusic.hidden = !wantMusic;
-splashMusic.addEventListener("click", () => setWantMusic(true));
+// The splash waits on its last frame until the user taps. That tap also
+// counts as the gesture iOS needs to start music.
+if (!wantMusic) splashHint.querySelector("svg").remove();
 
 function endSplash() {
   if (splashDone) return;
   splashDone = true;
   splash.classList.add("gone");
   setTimeout(() => splash.remove(), 700);
-  // Let the empty background breathe for a moment before the first prompt.
-  setTimeout(() => {
-    if (current === -1) showNext();
-  }, 700 + BLANK_PAUSE_MS);
-  setTimeout(() => {
-    if (wantMusic && music.paused) musicBtn.classList.add("nudge");
-  }, 700 + BLANK_PAUSE_MS + 1000);
+  showNext();
 }
 
 splash.addEventListener("click", endSplash);
-setTimeout(endSplash, splashMusic.hidden ? 4200 : 6500);
+
+// ---- Offline ----
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}

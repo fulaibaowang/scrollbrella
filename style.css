@@ -337,6 +337,46 @@ button {
   font-size: 0.8rem;
 }
 
+.builtin {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.builtin h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.builtin h3 span {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.builtin .hint { margin: 4px 0 0; font-size: 0.85rem; }
+
+.builtin-group { margin-top: 14px; }
+
+.builtin-hours {
+  margin: 0 0 6px 2px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+.builtin-group.active .builtin-hours { color: var(--text); }
+
+.builtin-card {
+  margin: 0 0 8px;
+  padding: 11px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
 .editor-actions {
   display: flex;
   gap: 8px;

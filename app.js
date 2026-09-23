@@ -25,6 +25,11 @@ const EVENING_PROMPTS = [
   "Winding down. How was your day?",
 ];
 
+const TIME_WINDOWS = [
+  { label: "5:00 – 15:00", prompts: DAY_PROMPTS },
+  { label: "19:00 – 24:00", prompts: EVENING_PROMPTS },
+];
+
 function timePrompts(now = new Date()) {
   const h = now.getHours();
   if (h >= 5 && h < 15) return DAY_PROMPTS;
@@ -218,7 +223,29 @@ function fillEditor(items) {
   updateCount();
 }
 
+function renderBuiltins() {
+  const box = document.getElementById("builtin-list");
+  const active = timePrompts();
+  box.replaceChildren();
+  for (const { label, prompts: items } of TIME_WINDOWS) {
+    const group = document.createElement("div");
+    group.className = "builtin-group" + (items === active ? " active" : "");
+    const title = document.createElement("p");
+    title.className = "builtin-hours";
+    title.textContent = items === active ? `${label} · now` : label;
+    group.append(title);
+    for (const text of items) {
+      const card = document.createElement("p");
+      card.className = "builtin-card";
+      card.textContent = text;
+      group.append(card);
+    }
+    box.append(group);
+  }
+}
+
 document.getElementById("edit-open").addEventListener("click", () => {
+  renderBuiltins();
   editor.hidden = false; // visible first so cards can measure their height
   fillEditor(prompts);
   list.scrollTop = 0;

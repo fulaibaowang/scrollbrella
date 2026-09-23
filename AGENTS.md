@@ -40,7 +40,7 @@ Live: https://fulaibaowang.github.io/scrollbrella/
 | `scrollbrella.timeWindows` | `[{start, end, prompts}]` hours 0–24, may cross midnight; only stored when customised |
 | `scrollbrella.music` | `"on"` / `"off"` |
 
-Every storage access is wrapped in `try/catch`; the app must work without storage. A visit is deliberately short (the opposite of a feed): a random feeling, a tap, a random action (actions + active time-window prompts), a tap, the closing line, then taps do nothing and the screen dims. Returning after 60 s away, or saving in the editor, starts a fresh visit.
+Every storage access is wrapped in `try/catch`; the app must work without storage. A visit is deliberately short (the opposite of a feed): a random feeling, a random action (actions + active time-window prompts), the closing line, then the screen dims. Each prompt auto-advances after `ADVANCE_MS` (10 s, no visible countdown); a tap skips ahead; paused while the editor is open. Returning after 60 s away, or saving in the editor, starts a fresh visit.
 
 ## iOS constraints to respect
 

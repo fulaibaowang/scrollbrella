@@ -193,9 +193,13 @@ let prompts = loadSets();
 let timeWindows = loadWindows();
 
 // A visit is short on purpose, the opposite of a feed:
-// 1 feeling -> tap -> 1 action -> tap -> closing line, then the screen dims.
+// 1 feeling -> 1 action -> closing line, then the screen dims. Each prompt
+// advances on its own after a while (a tap skips ahead), so the phone can
+// be put down right after the splash.
+const ADVANCE_MS = 10 * 1000;
 let step = 0;
 let dimTimer = null;
+let advanceTimer = null;
 
 function randomFrom(list) {
   return list[Math.floor(Math.random() * list.length)];
@@ -223,15 +227,22 @@ function showText(text) {
   }, fadeMs);
 }
 
+function scheduleAdvance() {
+  clearTimeout(advanceTimer);
+  if (step < 3) advanceTimer = setTimeout(showNext, ADVANCE_MS);
+}
+
 function showNext() {
   const text = nextText();
   if (text === null) return;
   showText(text);
+  scheduleAdvance();
   if (step === 3) dimTimer = setTimeout(() => document.body.classList.add("dim"), 4700);
 }
 
 function restartVisit() {
   clearTimeout(dimTimer);
+  clearTimeout(advanceTimer);
   document.body.classList.remove("dim");
   step = 0;
   showNext();
@@ -424,6 +435,7 @@ document.getElementById("add-window").addEventListener("click", () => {
 });
 
 document.getElementById("edit-open").addEventListener("click", () => {
+  clearTimeout(advanceTimer); // hold the current prompt while editing
   editor.hidden = false; // visible first so cards can measure their height
   fillEditor(prompts);
   fillWindows(timeWindows);
@@ -435,6 +447,7 @@ document.getElementById("add-act").addEventListener("click", () => addItem("", n
 
 document.getElementById("cancel").addEventListener("click", () => {
   editor.hidden = true;
+  if (splashDone) scheduleAdvance();
 });
 
 document.getElementById("done").addEventListener("click", () => {

@@ -288,24 +288,13 @@ body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
   50%      { box-shadow: 0 0 36px 4px rgba(242, 232, 216, 0.16); border-color: var(--muted); transform: scale(1.04); }
 }
 
-/* Splash: the umbrella slowly opens, from folded to wide. */
-.s-canopy {
-  transform-box: fill-box;
-  transform-origin: 50% 0%;
-  animation: openUmbrella 3s cubic-bezier(.35, 0, .25, 1) .4s both;
-}
+/* Splash: the umbrella slowly opens (drawn per frame in app.js). */
 
 @keyframes splashIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-@keyframes openUmbrella {
-  0%   { transform: scale(.14, 1.1); }
-  75%  { transform: scale(1.03, .99); }
-  100% { transform: none; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .splash-logo, .splash-name, .s-canopy, .splash-music { animation: none; }
+  .splash-logo, .splash-name, .splash-music { animation: none; }
   .splash-brand { display: none; }
   .heart, #rest, .lists-open { animation: none; }
 }

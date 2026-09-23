@@ -923,6 +923,48 @@ renderMusicBtn();
 
 // ---- Splash (once per launch) ----
 
+// The umbrella opens like a real one: ribs pivot around the tip, from
+// hanging along the shaft (long and narrow) out to a wide dome, while the
+// fabric between them bows outward. `open` runs 0 -> 1 (slightly over).
+function canopyPath(open) {
+  const tipY = -58;
+  const rib = 82; // tip-to-edge chord when open (quarter circle of r 58)
+  const angle = ((6 + 39 * open) * Math.PI) / 180; // from the shaft
+  const bow = 0.276 * Math.min(open, 1); // 0 = straight ribs, 0.276 ≈ circle
+  const ux = Math.sin(angle), uy = Math.cos(angle); // along the rib
+  const nx = Math.cos(angle), ny = -Math.sin(angle); // outward from it
+  const pt = (along, out) => [ux * along * rib + nx * out * rib, tipY + uy * along * rib + ny * out * rib];
+  const [c1x, c1y] = pt(0.276, bow);
+  const [c2x, c2y] = pt(0.724, bow);
+  const [ex, ey] = pt(1, 0);
+  const f = (n) => n.toFixed(2);
+
+  let d = `M${f(-ex)} ${f(ey)} C${f(-c2x)} ${f(c2y)} ${f(-c1x)} ${f(c1y)} 0 ${tipY} C${f(c1x)} ${f(c1y)} ${f(c2x)} ${f(c2y)} ${f(ex)} ${f(ey)}`;
+  // Scalloped hem back across the bottom edge.
+  const w = 2 * ex;
+  const dip = 11 * (w / 116);
+  for (let i = 0; i < 6; i++) {
+    const x = ex - (i * w) / 6;
+    d += ` Q${f(x - w / 12)} ${f(ey - dip)} ${f(x - w / 6)} ${f(ey)}`;
+  }
+  return d + " Z";
+}
+
+(function openUmbrella() {
+  const canopy = document.getElementById("s-canopy");
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const DELAY = 400, DURATION = 3000;
+  const start = performance.now() + DELAY;
+  canopy.setAttribute("d", canopyPath(0));
+  function frame(now) {
+    const t = Math.min(Math.max((now - start) / DURATION, 0), 1);
+    const eased = t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+    canopy.setAttribute("d", canopyPath(eased * (1 + 0.05 * Math.sin(Math.PI * eased))));
+    if (t < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
 const splash = document.getElementById("splash");
 const splashHint = document.getElementById("splash-music");
 let splashDone = false;

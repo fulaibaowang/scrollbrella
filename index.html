@@ -15,25 +15,35 @@
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="icon" type="image/png" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
-
-  <style>
-    :root {
-      --top: #1e2a44;
-      --bottom: #3d5a6c;
-    }
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: var(--top);
-    }
-    body {
-      min-height: 100dvh;
-      background: linear-gradient(to bottom, var(--top), var(--bottom));
-      overscroll-behavior: none;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body></body>
+<body>
+  <main id="stage" aria-live="polite">
+    <p id="prompt"></p>
+  </main>
+
+  <button id="edit-open" aria-label="Edit prompts">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 20h4L19 9l-4-4L4 16v4z"/>
+      <path d="M13.5 6.5l4 4"/>
+    </svg>
+  </button>
+
+  <section id="editor" hidden aria-label="Edit prompts">
+    <div class="editor-head">
+      <h2>Your prompts</h2>
+      <button id="cancel" class="btn">Cancel</button>
+    </div>
+    <p class="hint">One prompt per line. Copy all to back them up; paste text here to restore.</p>
+    <textarea id="prompts-text" spellcheck="true" autocapitalize="sentences"></textarea>
+    <div class="editor-actions">
+      <button id="copy" class="btn">Copy all</button>
+      <button id="restore" class="btn">Defaults</button>
+      <span class="spacer"></span>
+      <button id="done" class="btn primary">Done</button>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
 </html>

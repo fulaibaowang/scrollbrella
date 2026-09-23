@@ -1,0 +1,156 @@
+:root {
+  --top: #1e2a44;
+  --bottom: #3d5a6c;
+  --text: #f2e8d8;
+  --muted: rgba(242, 232, 216, 0.6);
+  --line: rgba(242, 232, 216, 0.2);
+  --fade: 700ms;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--top);
+  color: var(--text);
+}
+
+body {
+  min-height: 100dvh;
+  background: linear-gradient(to bottom, var(--top), var(--bottom));
+  overscroll-behavior: none;
+  font-family: -apple-system, system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ---- Main screen ---- */
+
+#stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(env(safe-area-inset-top) + 48px)
+    calc(env(safe-area-inset-right) + 32px)
+    calc(env(safe-area-inset-bottom) + 48px)
+    calc(env(safe-area-inset-left) + 32px);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#prompt {
+  margin: 0;
+  max-width: 22ch;
+  font-family: ui-serif, "New York", Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.6rem, 7vw, 2.6rem);
+  line-height: 1.35;
+  text-align: center;
+  text-wrap: balance;
+  opacity: 0;
+  transition: opacity var(--fade) ease;
+}
+
+#prompt.shown { opacity: 1; }
+
+#edit-open {
+  position: fixed;
+  right: calc(env(safe-area-inset-right) + 12px);
+  bottom: calc(env(safe-area-inset-bottom) + 12px);
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  opacity: 0.35;
+}
+
+#edit-open svg { width: 20px; height: 20px; }
+
+/* ---- Editor ---- */
+
+#editor {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding:
+    calc(env(safe-area-inset-top) + 20px)
+    calc(env(safe-area-inset-right) + 20px)
+    calc(env(safe-area-inset-bottom) + 20px)
+    calc(env(safe-area-inset-left) + 20px);
+  background: linear-gradient(to bottom, var(--top), var(--bottom));
+}
+
+#editor[hidden] { display: none; }
+
+.editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.editor-head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+#prompts-text {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--text);
+  font: 16px/1.6 -apple-system, system-ui, sans-serif; /* 16px stops iOS zoom-on-focus */
+  resize: none;
+}
+
+#prompts-text:focus {
+  outline: none;
+  border-color: var(--muted);
+}
+
+.editor-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 0.95rem;
+}
+
+.btn.primary {
+  border-color: transparent;
+  background: var(--text);
+  color: var(--top);
+  font-weight: 600;
+}
+
+.spacer { flex: 1; }

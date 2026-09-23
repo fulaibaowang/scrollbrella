@@ -1,5 +1,6 @@
 const STORAGE_KEY = "scrollbrella.prompts";
 const MUSIC_KEY = "scrollbrella.music";
+const BLANK_PAUSE_MS = 2000;
 
 const DEFAULT_PROMPTS = [
   "Breathe in slowly. Breathe out slower.",
@@ -180,10 +181,13 @@ function endSplash() {
   splashDone = true;
   splash.classList.add("gone");
   setTimeout(() => splash.remove(), 700);
-  showNext();
+  // Let the empty background breathe for a moment before the first prompt.
+  setTimeout(() => {
+    if (current === -1) showNext();
+  }, 700 + BLANK_PAUSE_MS);
   setTimeout(() => {
     if (wantMusic && music.paused) musicBtn.classList.add("nudge");
-  }, 1200);
+  }, 700 + BLANK_PAUSE_MS + 1000);
 }
 
 splash.addEventListener("click", endSplash);

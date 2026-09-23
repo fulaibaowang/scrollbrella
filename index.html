@@ -79,7 +79,26 @@
 
   <main id="stage" aria-live="polite">
     <p id="prompt"></p>
+    <div id="rest" hidden>
+      <svg class="heart" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 21s-7.5-4.6-9.6-9.3C1 8.4 3 5 6.4 5c2.1 0 3.6 1.2 4.6 2.7h2C14 6.2 15.5 5 17.6 5 21 5 23 8.4 21.6 11.7 19.5 16.4 12 21 12 21z"/>
+      </svg>
+      <p class="rest-text">It's okay to do nothing.</p>
+    </div>
   </main>
+
+  <button id="lists-open" class="lists-open" hidden>things I could do</button>
+
+  <section id="lists" class="sheet" hidden aria-label="Things I could do">
+    <div class="editor-head">
+      <div>
+        <h2>Still want to do something?</h2>
+        <p class="hint">No need. But if you'd like, you already chose these.</p>
+      </div>
+      <button id="lists-close" class="btn">Close</button>
+    </div>
+    <div class="editor-scroll" id="lists-view"></div>
+  </section>
 
   <button id="music-toggle" aria-label="Play music" aria-pressed="false">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -98,7 +117,7 @@
     </svg>
   </button>
 
-  <section id="editor" hidden aria-label="Edit prompts">
+  <section id="editor" class="sheet" hidden aria-label="Edit prompts">
     <div class="editor-head">
       <div>
         <h2>Your prompts</h2>
@@ -113,16 +132,21 @@
         <button id="add-feel" class="add-prompt">+ Add a feeling</button>
       </div>
       <div class="set">
-        <h3>Actions <span>· shown second</span></h3>
+        <h3>Small moments <span>· shown second</span></h3>
         <ul id="act-list" class="prompt-list"></ul>
-        <button id="add-act" class="add-prompt">+ Add an action</button>
+        <button id="add-act" class="add-prompt">+ Add a small moment</button>
       </div>
-      <p class="hint tip">Each visit: one feeling, one action, then "Put the phone down." Paste a copied list into any card to add them all at once.</p>
+      <p class="hint tip">Each visit: one feeling, one small moment, then "Put the phone down." Paste a copied list into any card to add them all at once.</p>
       <div class="time-section">
-        <h3>Actions by time of day</h3>
-        <p class="hint">Join the actions during these hours.</p>
+        <h3>Small moments by time of day</h3>
+        <p class="hint">Join the small moments during these hours.</p>
         <div id="window-list"></div>
         <button id="add-window" class="add-prompt">+ Add a time window</button>
+      </div>
+      <div class="time-section">
+        <h3>Things I could do</h3>
+        <p class="hint">Decided in advance, so there's nothing to search for. Shown only if you ask, after the visit.</p>
+        <div id="edit-lists"></div>
       </div>
     </div>
     <div class="editor-actions">

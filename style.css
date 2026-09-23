@@ -77,6 +77,70 @@ button {
 body.dim #dim { opacity: 0.85; }
 body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
 
+/* After the visit: a heart and "it's okay to do nothing" */
+#stage { z-index: 1; }
+
+#rest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: fadeIn 1.2s ease both;
+}
+
+#rest[hidden] { display: none; }
+
+.heart {
+  width: 56px;
+  height: 56px;
+  fill: var(--red);
+}
+
+#rest.beat .heart { animation: beat 1.4s ease-in-out; }
+
+@keyframes beat {
+  0%, 100% { transform: scale(1); }
+  20%      { transform: scale(1.18); }
+  40%      { transform: scale(1); }
+  60%      { transform: scale(1.1); }
+}
+
+.rest-text {
+  margin: 0;
+  font-family: ui-serif, "New York", Georgia, serif;
+  font-size: clamp(1.3rem, 5.5vw, 1.8rem);
+  color: var(--muted);
+  text-align: center;
+}
+
+.lists-open {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 20px);
+  z-index: 2;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  opacity: 0.6;
+  animation: fadeIn 1.2s ease 0.8s both;
+}
+
+.lists-open[hidden] { display: none; }
+
+.list-card {
+  margin: 0 0 8px;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
 #edit-open,
 #music-toggle {
   position: fixed;
@@ -232,13 +296,14 @@ body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
 @media (prefers-reduced-motion: reduce) {
   .splash-logo, .splash-name, .s-finger, .s-feed, .s-brella, .s-speed, .s-burst, .splash-music { animation: none; }
   .splash-brand { display: none; }
+  #rest.beat .heart, #rest, .lists-open { animation: none; }
   .s-feed { opacity: 0; }
   .s-speed { opacity: .6; }
 }
 
 /* ---- Editor ---- */
 
-#editor {
+.sheet {
   position: fixed;
   inset: 0;
   z-index: 5;
@@ -253,7 +318,7 @@ body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
   background: linear-gradient(to bottom, var(--top), var(--bottom));
 }
 
-#editor[hidden] { display: none; }
+.sheet[hidden] { display: none; }
 
 .editor-head {
   display: flex;

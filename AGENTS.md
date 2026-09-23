@@ -4,7 +4,7 @@ Guidance for people and coding agents working on Scrollbrella. (`CLAUDE.md` is a
 
 ## What this is
 
-A calm, installable web app (iPhone home screen) to open instead of doom-scrolling: splash animation → music button → one feeling, one action, then "Put the phone down. It will still be here." and the screen dims. Plain static HTML/CSS/JS with **no build step and no dependencies**, hosted on GitHub Pages from `main` (root).
+A calm, installable web app (iPhone home screen) to open instead of doom-scrolling: splash animation → music button → one feeling, one small moment, then "Put the phone down. It will still be here." and the screen dims. The core message is "it's okay to be bored / do nothing"; replacement activities are optional and pre-decided, never searched for. Plain static HTML/CSS/JS with **no build step and no dependencies**, hosted on GitHub Pages from `main` (root).
 
 Live: https://fulaibaowang.github.io/scrollbrella/
 
@@ -37,10 +37,11 @@ Live: https://fulaibaowang.github.io/scrollbrella/
 |---|---|
 | `scrollbrella.promptSets` | `{feel: [], act: []}`; only stored when it differs from `DEFAULT_SETS` |
 | `scrollbrella.prompts` | Legacy flat list; migrated into sets (known actions → `act`) and removed on next save |
+| `scrollbrella.lists` | `{books, shows, dreams}`: "Things I could do", shown only on request after a visit |
 | `scrollbrella.timeWindows` | `[{start, end, prompts}]` hours 0–24, may cross midnight; only stored when customised |
 | `scrollbrella.music` | `"on"` / `"off"` |
 
-Every storage access is wrapped in `try/catch`; the app must work without storage. A visit is deliberately short (the opposite of a feed): a random feeling, a random action (actions + active time-window prompts), the closing line, then the screen dims. Each prompt auto-advances after `ADVANCE_MS` (10 s, no visible countdown); a tap skips ahead; paused while the editor is open. Returning after 60 s away, or saving in the editor, starts a fresh visit.
+Every storage access is wrapped in `try/catch`; the app must work without storage. A visit is deliberately short (the opposite of a feed): feeling (0 s) → small moment from `act` + active time-window prompts (15 s) → closing line (30 s) → dim (40 s). Auto-advance uses `ADVANCE_MS`/`DIM_AFTER_MS` (no visible countdown); a tap skips ahead; paused while the editor is open. Nothing re-brightens on its own. A tap after the visit shows a red heart + "It's okay to do nothing." and a tiny "things I could do" link to the lists sheet. Returning after 60 s away, or saving in the editor, starts a fresh visit.
 
 ## iOS constraints to respect
 

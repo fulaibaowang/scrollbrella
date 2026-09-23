@@ -2,14 +2,18 @@ const LEGACY_PROMPTS_KEY = "scrollbrella.prompts"; // one flat list, before feel
 const SETS_KEY = "scrollbrella.promptSets";
 const WINDOWS_KEY = "scrollbrella.timeWindows";
 const MUSIC_KEY = "scrollbrella.music";
+const LISTS_KEY = "scrollbrella.lists";
 
-// Each visit shows one feeling, then one action, then the closing line.
+// Each visit shows one feeling, then one small moment ("act"), then the
+// closing line. Feelings come first: it's fine to do nothing at all.
 const DEFAULT_SETS = {
   feel: [
     "Nothing here is urgent.",
     "You don't need to catch up on anything.",
     "It's okay to be bored.",
     "Rest is not wasted time.",
+    "You don't have to replace this with anything.",
+    "The urge will pass. Let it.",
   ],
   act: [
     "Breathe in slowly. Breathe out slower.",
@@ -21,8 +25,16 @@ const DEFAULT_SETS = {
 
 const CLOSING = "Put the phone down. It will still be here.";
 
+// "Things I could do": pre-decided options, shown only if asked for after a
+// visit, so there's never anything to search for.
+const LIST_KINDS = [
+  { key: "books", title: "My books", add: "+ Add a book" },
+  { key: "shows", title: "My movies & series", add: "+ Add a movie or series" },
+  { key: "dreams", title: "My dreams", add: "+ Add a dream" },
+];
+
 // Time-of-day windows on the phone's clock (hours 0-24; a window may cross
-// midnight). Their prompts count as actions while the window is active.
+// midnight). Their prompts join the small moments while the window is active.
 const DEFAULT_WINDOWS = [
   {
     start: 5,
@@ -185,18 +197,39 @@ function saveWindows(windows) {
   }
 }
 
+function loadLists() {
+  const lists = { books: [], shows: [], dreams: [] };
+  try {
+    const saved = JSON.parse(localStorage.getItem(LISTS_KEY));
+    for (const { key } of LIST_KINDS) lists[key] = strings(saved?.[key]);
+  } catch {
+    // Start empty.
+  }
+  return lists;
+}
+
+function saveLists(lists) {
+  try {
+    localStorage.setItem(LISTS_KEY, JSON.stringify(lists));
+  } catch {
+    // Storage blocked; lists still apply for this session.
+  }
+}
+
 // ---- Main screen ----
 
 const stage = document.getElementById("stage");
 const promptEl = document.getElementById("prompt");
 let prompts = loadSets();
 let timeWindows = loadWindows();
+let lists = loadLists();
 
 // A visit is short on purpose, the opposite of a feed:
-// 1 feeling -> 1 action -> closing line, then the screen dims. Each prompt
-// advances on its own after a while (a tap skips ahead), so the phone can
-// be put down right after the splash.
-const ADVANCE_MS = 10 * 1000;
+// feeling (0 s) -> small moment (15 s) -> closing line (30 s) -> dim (40 s).
+// A tap skips ahead. Tapping after the visit shows a heart ("it's okay to do
+// nothing") and a tiny link to the pre-decided lists; nothing else wakes up.
+const ADVANCE_MS = 15 * 1000;
+const DIM_AFTER_MS = 10 * 1000;
 let step = 0;
 let dimTimer = null;
 let advanceTimer = null;
@@ -232,23 +265,92 @@ function scheduleAdvance() {
   if (step < 3) advanceTimer = setTimeout(showNext, ADVANCE_MS);
 }
 
+const rest = document.getElementById("rest");
+const listsOpen = document.getElementById("lists-open");
+
+function showRest() {
+  clearTimeout(dimTimer);
+  document.body.classList.add("dim");
+  promptEl.classList.remove("shown");
+  if (!rest.hidden) {
+    // Already resting: the heart just beats once more.
+    rest.classList.remove("beat");
+    void rest.offsetWidth;
+    rest.classList.add("beat");
+    return;
+  }
+  setTimeout(() => {
+    promptEl.hidden = true;
+    rest.hidden = false;
+    rest.classList.add("beat");
+    listsOpen.hidden = false;
+  }, 700);
+}
+
 function showNext() {
+  if (step >= 3) return showRest();
   const text = nextText();
   if (text === null) return;
   showText(text);
   scheduleAdvance();
-  if (step === 3) dimTimer = setTimeout(() => document.body.classList.add("dim"), 4700);
+  if (step === 3) dimTimer = setTimeout(() => document.body.classList.add("dim"), DIM_AFTER_MS);
 }
 
 function restartVisit() {
   clearTimeout(dimTimer);
   clearTimeout(advanceTimer);
+  rest.hidden = true;
+  promptEl.hidden = false;
+  listsOpen.hidden = true;
   document.body.classList.remove("dim");
   step = 0;
   showNext();
 }
 
 stage.addEventListener("click", showNext);
+
+// ---- Things I could do (view) ----
+
+const listsSheet = document.getElementById("lists");
+const listsView = document.getElementById("lists-view");
+
+function renderListsView() {
+  listsView.replaceChildren();
+  for (const { key, title } of LIST_KINDS) {
+    const box = document.createElement("div");
+    box.className = "set";
+    const h = document.createElement("h3");
+    h.textContent = title;
+    box.append(h);
+    if (!lists[key].length) {
+      const empty = document.createElement("p");
+      empty.className = "hint";
+      empty.textContent = "Nothing here yet. Add some with ✎ (bottom right).";
+      box.append(empty);
+    }
+    for (const text of lists[key]) {
+      const item = document.createElement("p");
+      item.className = "list-card";
+      item.textContent = text;
+      box.append(item);
+    }
+    listsView.append(box);
+  }
+  const sit = document.createElement("p");
+  sit.className = "hint tip";
+  sit.textContent = "Or just sit a little longer. That's enough too.";
+  listsView.append(sit);
+}
+
+listsOpen.addEventListener("click", () => {
+  renderListsView();
+  listsSheet.hidden = false;
+  listsView.scrollTop = 0;
+});
+
+document.getElementById("lists-close").addEventListener("click", () => {
+  listsSheet.hidden = true;
+});
 
 // ---- Editor ----
 // One card per prompt. Edits stay in the cards until Done; Cancel discards.
@@ -278,7 +380,7 @@ function plural(n, word) {
 
 function updateCount() {
   const { feel, act } = editorSets();
-  countEl.textContent = `${plural(feel.length, "feeling")} · ${plural(act.length, "action")}`;
+  countEl.textContent = `${plural(feel.length, "feeling")} · ${plural(act.length, "small moment")}`;
 }
 
 function makeItem(text) {
@@ -429,6 +531,37 @@ function editorWindows() {
     .filter((w) => w.prompts.length && w.start % 24 !== w.end % 24);
 }
 
+// ---- "Things I could do" lists in the editor ----
+
+const editLists = document.getElementById("edit-lists");
+
+function fillEditLists(source) {
+  editLists.replaceChildren();
+  for (const { key, title, add } of LIST_KINDS) {
+    const group = document.createElement("div");
+    group.className = "window-group";
+    const head = document.createElement("p");
+    head.className = "window-head";
+    head.textContent = title;
+    const ul = document.createElement("ul");
+    ul.className = "prompt-list";
+    ul.dataset.list = key;
+    const btn = document.createElement("button");
+    btn.className = "add-prompt small";
+    btn.textContent = add;
+    btn.addEventListener("click", () => addItem("", null, true, ul));
+    group.append(head, ul, btn);
+    editLists.append(group);
+    for (const text of source[key]) addItem(text, null, false, ul);
+  }
+}
+
+function editorLists() {
+  const out = {};
+  for (const ul of editLists.querySelectorAll("ul[data-list]")) out[ul.dataset.list] = listValues(ul);
+  return out;
+}
+
 document.getElementById("add-window").addEventListener("click", () => {
   const g = makeWindow({ start: 12, end: 13, prompts: [] });
   g.querySelector(".add-prompt").click();
@@ -439,6 +572,7 @@ document.getElementById("edit-open").addEventListener("click", () => {
   editor.hidden = false; // visible first so cards can measure their height
   fillEditor(prompts);
   fillWindows(timeWindows);
+  fillEditLists(lists);
   editor.querySelector(".editor-scroll").scrollTop = 0;
 });
 
@@ -447,7 +581,7 @@ document.getElementById("add-act").addEventListener("click", () => addItem("", n
 
 document.getElementById("cancel").addEventListener("click", () => {
   editor.hidden = true;
-  if (splashDone) scheduleAdvance();
+  if (splashDone && step < 3) scheduleAdvance();
 });
 
 document.getElementById("done").addEventListener("click", () => {
@@ -456,12 +590,14 @@ document.getElementById("done").addEventListener("click", () => {
   saveSets(prompts);
   timeWindows = editorWindows();
   saveWindows(timeWindows);
+  lists = editorLists();
+  saveLists(lists);
   editor.hidden = true;
   restartVisit();
 });
 
 document.getElementById("restore").addEventListener("click", () => {
-  if (confirm("Replace your prompts and time windows with the defaults? (Nothing is saved until you tap Done.)")) {
+  if (confirm("Replace your prompts and time windows with the defaults? Your lists stay as they are. (Nothing is saved until you tap Done.)")) {
     fillEditor(DEFAULT_SETS);
     fillWindows(DEFAULT_WINDOWS);
   }
@@ -518,7 +654,7 @@ function setWantMusic(on) {
 musicBtn.addEventListener("click", () => setWantMusic(!wantMusic));
 
 document.addEventListener("click", (e) => {
-  if (e.target.closest("#music-toggle, #editor")) return;
+  if (e.target.closest("#music-toggle, #editor, #lists")) return;
   playIfWanted();
 });
 
@@ -534,7 +670,7 @@ document.addEventListener("visibilitychange", () => {
     return;
   }
   playIfWanted();
-  if (splashDone && editor.hidden && Date.now() - hiddenAt > AWAY_RESET_MS) restartVisit();
+  if (splashDone && editor.hidden && listsSheet.hidden && Date.now() - hiddenAt > AWAY_RESET_MS) restartVisit();
 });
 
 renderMusicBtn();

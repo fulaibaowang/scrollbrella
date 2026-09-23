@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Scrollbrella</title>
+
+  <!-- Launch full-screen from the iOS home screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Scrollbrella">
+  <meta name="theme-color" content="#1e2a44">
+
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <style>
+    :root {
+      --top: #1e2a44;
+      --bottom: #3d5a6c;
+    }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--top);
+    }
+    body {
+      min-height: 100dvh;
+      background: linear-gradient(to bottom, var(--top), var(--bottom));
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body></body>
+</html>

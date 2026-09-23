@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Scrollbrella logo concepts</title>
+  <style>
+    :root { --top: #1e2a44; --bottom: #3d5a6c; --text: #f2e8d8; --red: #c9303a; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background: linear-gradient(to bottom, var(--top), var(--bottom)) fixed;
+      color: var(--text);
+      font-family: -apple-system, system-ui, sans-serif;
+      padding: 24px 16px calc(env(safe-area-inset-bottom) + 32px);
+    }
+    h1 { font-size: 1.2rem; font-weight: 600; text-align: center; margin: 8px 0 4px; }
+    .sub { text-align: center; opacity: 0.6; font-size: 0.9rem; margin: 0 0 24px; }
+    .grid { display: grid; gap: 28px; justify-items: center; }
+    figure { margin: 0; text-align: center; }
+    svg { width: 220px; height: 220px; display: block; }
+    figcaption b { display: block; margin-top: 10px; font-size: 1.05rem; }
+    figcaption span { opacity: 0.65; font-size: 0.9rem; }
+    .replay {
+      display: block; margin: 20px auto 0; padding: 10px 18px;
+      border: 1px solid rgba(242,232,216,.3); border-radius: 999px;
+      background: transparent; color: inherit; font: inherit;
+    }
+
+    /* Animations (played on load / replay) */
+    .play .zz  { animation: zz 3s ease-in-out infinite; }
+    .play .zz2 { animation: zz 3s ease-in-out 0.6s infinite; }
+    @keyframes zz { 0%,100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
+
+    .play .b-finger { animation: bUp 1.6s cubic-bezier(.3,.7,.3,1) both; }
+    .play .b-drops  { animation: fadeIn 1s ease 1s both; }
+    @keyframes bUp { from { transform: translate(18px, 60px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .play .c-finger { animation: cHit .55s cubic-bezier(.5,0,.9,.4) both; }
+    .play .c-burst  { animation: pop .5s cubic-bezier(.2,1.8,.4,1) .5s both; transform-origin: 118px 108px; }
+    .play .c-brella { animation: shake .4s ease .5s both; transform-origin: 90px 100px; }
+    .play .c-speed  { animation: fadeIn .2s ease .15s both; }
+    @keyframes cHit { from { transform: translate(60px, 80px); } to { transform: none; } }
+    @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+    @keyframes shake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-5deg); } 60% { transform: rotate(3deg); } }
+
+    @media (prefers-reduced-motion: reduce) { .play * { animation: none !important; } }
+  </style>
+</head>
+<body>
+  <h1>Scrollbrella logo concepts</h1>
+  <p class="sub">From peaceful to exaggerated</p>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <!-- Umbrella, canopy centred at (0,0), radius 50 -->
+      <g id="canopy">
+        <path d="M-50 0 A50 50 0 0 1 50 0 Q41.7 -10 33.3 0 Q25 -10 16.7 0 Q8.3 -10 0 0 Q-8.3 -10 -16.7 0 Q-25 -10 -33.3 0 Q-41.7 -10 -50 0 Z" fill="var(--text)"/>
+        <path d="M0 -50 V-58" stroke="var(--text)" stroke-width="5" stroke-linecap="round"/>
+      </g>
+      <!-- Pointing hand, fingertip at (0,0), pointing up -->
+      <g id="hand">
+        <rect x="-9" y="0" width="18" height="58" rx="9" fill="var(--text)"/>
+        <rect x="-5" y="3" width="10" height="11" rx="4" fill="var(--red)" opacity=".35"/>
+        <path d="M-5 26 h10 M-5 38 h10" stroke="var(--red)" stroke-width="2" stroke-linecap="round" opacity=".45"/>
+        <rect x="-13" y="44" width="46" height="44" rx="15" fill="var(--text)"/>
+        <path d="M10 56 h14 M10 67 h14 M10 78 h12" stroke="var(--red)" stroke-width="2.4" stroke-linecap="round" opacity=".45"/>
+      </g>
+      <!-- Scroll chevron "raindrop" -->
+      <path id="chev" d="M-5 3 L0 -3 L5 3" fill="none" stroke="var(--text)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </defs>
+  </svg>
+
+  <div class="grid play" id="grid">
+
+    <!-- A. Peaceful: the scrolling finger takes a nap under a beach umbrella -->
+    <figure>
+      <svg viewBox="0 0 200 200" role="img" aria-label="A finger napping under an umbrella">
+        <rect width="200" height="200" rx="44" fill="var(--red)"/>
+        <g transform="translate(96 78) rotate(-12)">
+          <use href="#canopy"/>
+          <path d="M0 0 V92" stroke="var(--text)" stroke-width="5" stroke-linecap="round"/>
+        </g>
+        <path d="M34 160 H166" stroke="var(--text)" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+        <g transform="translate(38 150) rotate(-90) scale(.8)">
+          <use href="#hand"/>
+        </g>
+        <text class="zz"  x="58"  y="114" font-family="ui-rounded, system-ui" font-weight="700" font-size="16" fill="var(--text)">z</text>
+        <text class="zz2" x="70"  y="102" font-family="ui-rounded, system-ui" font-weight="700" font-size="12" fill="var(--text)">z</text>
+      </svg>
+      <figcaption><b>A · Nap</b><span>The scrolling finger rests in the shade.</span></figcaption>
+    </figure>
+
+    <!-- B. Balanced: finger swipes up, the umbrella gently holds it off -->
+    <figure>
+      <svg viewBox="0 0 200 200" role="img" aria-label="An umbrella gently stopping a swiping finger">
+        <rect width="200" height="200" rx="44" fill="var(--red)"/>
+        <g class="b-drops" opacity=".7">
+          <use href="#chev" x="46"  y="36"/>
+          <use href="#chev" x="150" y="44"/>
+          <use href="#chev" x="164" y="80"/>
+          <use href="#chev" x="30"  y="72"/>
+        </g>
+        <g transform="translate(96 92) rotate(-10)">
+          <use href="#canopy"/>
+          <path d="M0 0 V56 A10 10 0 0 1 -20 56" fill="none" stroke="var(--text)" stroke-width="5" stroke-linecap="round"/>
+        </g>
+        <g class="b-finger">
+          <g transform="translate(124 96) rotate(-8) scale(.72)">
+            <use href="#hand"/>
+          </g>
+        </g>
+      </svg>
+      <figcaption><b>B · Gentle stop</b><span>A soft "not now" to the swipe.</span></figcaption>
+    </figure>
+
+    <!-- C. Exaggerated: finger slams into the umbrella shield -->
+    <figure>
+      <svg viewBox="0 0 200 200" role="img" aria-label="A finger crashing into an umbrella shield">
+        <rect width="200" height="200" rx="44" fill="var(--red)"/>
+        <g class="c-brella">
+          <g transform="translate(84 92) rotate(38)">
+            <use href="#canopy"/>
+            <path d="M0 0 V50 A10 10 0 0 1 -20 50" fill="none" stroke="var(--text)" stroke-width="5" stroke-linecap="round"/>
+          </g>
+        </g>
+        <g class="c-speed" stroke="var(--text)" stroke-width="3" stroke-linecap="round" opacity=".6">
+          <path d="M150 160 L168 176"/><path d="M164 146 L182 162"/><path d="M140 172 L152 184"/>
+        </g>
+        <g class="c-finger">
+          <g transform="translate(122 112) rotate(-42) scale(.72)">
+            <use href="#hand"/>
+          </g>
+        </g>
+        <g class="c-burst">
+          <path d="M118 108 m0 -18 l4 10 l10 -6 l-4 10 l11 3 l-10 5 l6 9 l-11 -3 l-2 11 l-5 -9 l-7 8 l0 -11 l-11 1 l8 -8 l-9 -6 l11 -2 l-4 -10 l10 5 z" fill="#ffd166" stroke="var(--text)" stroke-width="1.5" stroke-linejoin="round" transform="translate(-3 3)"/>
+        </g>
+      </svg>
+      <figcaption><b>C · Blocked!</b><span>Comic-style: the umbrella shields you.</span></figcaption>
+    </figure>
+
+  </div>
+  <button class="replay" onclick="const g=document.getElementById('grid');g.classList.remove('play');void g.offsetWidth;g.classList.add('play')">Replay animations</button>
+</body>
+</html>

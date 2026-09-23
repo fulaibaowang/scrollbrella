@@ -1,4 +1,5 @@
 const STORAGE_KEY = "scrollbrella.prompts";
+const MUSIC_KEY = "scrollbrella.music";
 
 const DEFAULT_PROMPTS = [
   "Breathe in slowly. Breathe out slower.",
@@ -113,4 +114,66 @@ copyBtn.addEventListener("click", async () => {
   setTimeout(() => (copyBtn.textContent = "Copy all"), 1500);
 });
 
-showNext();
+// ---- Music ----
+// iOS only allows audio to start from a tap, so music (on by default)
+// begins with the first tap anywhere and the speaker button toggles it.
+
+const music = document.getElementById("music");
+const musicBtn = document.getElementById("music-toggle");
+
+function readMusicPref() {
+  try {
+    return localStorage.getItem(MUSIC_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+
+let wantMusic = readMusicPref();
+
+function renderMusicBtn() {
+  musicBtn.setAttribute("aria-pressed", String(wantMusic));
+  musicBtn.setAttribute("aria-label", wantMusic ? "Pause music" : "Play music");
+}
+
+function playIfWanted() {
+  if (wantMusic && music.paused) music.play().catch(() => {});
+}
+
+musicBtn.addEventListener("click", () => {
+  wantMusic = !wantMusic;
+  try {
+    localStorage.setItem(MUSIC_KEY, wantMusic ? "on" : "off");
+  } catch {}
+  renderMusicBtn();
+  if (wantMusic) playIfWanted();
+  else music.pause();
+});
+
+document.addEventListener("click", (e) => {
+  if (e.target.closest("#music-toggle, #editor")) return;
+  playIfWanted();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) music.pause();
+  else playIfWanted();
+});
+
+renderMusicBtn();
+
+// ---- Splash (once per launch) ----
+
+const splash = document.getElementById("splash");
+let splashDone = false;
+
+function endSplash() {
+  if (splashDone) return;
+  splashDone = true;
+  splash.classList.add("gone");
+  setTimeout(() => splash.remove(), 700);
+  showNext();
+}
+
+splash.addEventListener("click", endSplash);
+setTimeout(endSplash, 2600);

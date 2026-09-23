@@ -2,6 +2,7 @@
   --top: #1e2a44;
   --bottom: #3d5a6c;
   --text: #f2e8d8;
+  --red: #c9303a;
   --muted: rgba(242, 232, 216, 0.6);
   --line: rgba(242, 232, 216, 0.2);
   --fade: 700ms;
@@ -63,9 +64,9 @@ button {
 
 #prompt.shown { opacity: 1; }
 
-#edit-open {
+#edit-open,
+#music-toggle {
   position: fixed;
-  right: calc(env(safe-area-inset-right) + 12px);
   bottom: calc(env(safe-area-inset-bottom) + 12px);
   width: 44px;
   height: 44px;
@@ -77,7 +78,59 @@ button {
   opacity: 0.35;
 }
 
-#edit-open svg { width: 20px; height: 20px; }
+#edit-open { right: calc(env(safe-area-inset-right) + 12px); }
+#music-toggle { left: calc(env(safe-area-inset-left) + 12px); }
+
+#edit-open svg,
+#music-toggle svg { width: 20px; height: 20px; }
+
+#music-toggle[aria-pressed="true"] { opacity: 0.6; }
+#music-toggle[aria-pressed="true"] .mute-slash { display: none; }
+
+/* ---- Splash (once per launch) ---- */
+
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: linear-gradient(to bottom, var(--top), var(--bottom));
+  transition: opacity 700ms ease;
+}
+
+#splash.gone {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-logo {
+  width: 132px;
+  height: 132px;
+  animation: splashIn 700ms ease both;
+}
+
+.splash-name {
+  margin: 0;
+  font-family: ui-serif, "New York", Georgia, serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
+  animation: fadeIn 700ms ease 400ms both;
+}
+
+.s-finger { animation: fingerUp 1.4s cubic-bezier(.3,.7,.3,1) 200ms both; }
+.s-drops  { animation: fadeIn 800ms ease 1s both; }
+
+@keyframes splashIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fingerUp { from { transform: translate(18px, 60px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-logo, .splash-name, .s-finger, .s-drops { animation: none; }
+}
 
 /* ---- Editor ---- */
 
@@ -154,3 +207,10 @@ button {
 }
 
 .spacer { flex: 1; }
+
+.credits {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-align: center;
+}

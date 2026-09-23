@@ -4,17 +4,48 @@ const MUSIC_KEY = "scrollbrella.music";
 const DEFAULT_PROMPTS = [
   "Breathe in slowly. Breathe out slower.",
   "Nothing here is urgent.",
-  "Look out a window for a moment.",
+  "Look at the sky for a moment.",
   "You don't need to catch up on anything.",
-  "Unclench your jaw. Drop your shoulders.",
-  "What do you actually want to do right now?",
   "Stand up and stretch.",
   "Drink a glass of water.",
   "It's okay to be bored.",
-  "Notice three sounds around you.",
+  "Listen for the trees, the leaves, the wind.",
   "Rest is not wasted time.",
   "Put the phone down. It will still be here.",
 ];
+
+// Built-in prompts for the time of day on the phone's clock. The first
+// prompt after opening comes from here; later ones mix into the pool.
+const TIME_PROMPTS = {
+  morning: [
+    "Good morning. Close your eyes: what would make today a good day?",
+    "What's one thing you'd love to do today?",
+    "Before the day rushes in, take one slow breath.",
+  ],
+  afternoon: [
+    "How is your day going so far?",
+    "What's one thing left today that really matters?",
+    "Halfway through the day. Take a slow breath.",
+  ],
+  evening: [
+    "What did you do today? Name one good moment.",
+    "The day is winding down. What are you glad you did?",
+    "Evening now. Let the day slow down with you.",
+  ],
+  night: [
+    "It's late. What's one thing you're grateful for today?",
+    "The day is done. Let it go, and rest.",
+    "Put the screen away. Tomorrow can wait.",
+  ],
+};
+
+function timePrompts(now = new Date()) {
+  const h = now.getHours();
+  if (h >= 5 && h < 12) return TIME_PROMPTS.morning;
+  if (h >= 12 && h < 18) return TIME_PROMPTS.afternoon;
+  if (h >= 18 && h < 22) return TIME_PROMPTS.evening;
+  return TIME_PROMPTS.night;
+}
 
 // ---- Storage ----
 
@@ -50,23 +81,25 @@ function savePrompts(list) {
 const stage = document.getElementById("stage");
 const promptEl = document.getElementById("prompt");
 let prompts = loadPrompts();
-let current = -1;
+let current = null; // text currently shown; null before the first prompt
+
+function randomFrom(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
 
 function pickNext() {
-  if (prompts.length === 1) return 0;
-  let i;
-  do {
-    i = Math.floor(Math.random() * prompts.length);
-  } while (i === current);
-  return i;
+  if (current === null) return randomFrom(timePrompts());
+  const pool = [...prompts, ...timePrompts()].filter((t) => t !== current);
+  return pool.length ? randomFrom(pool) : current;
 }
 
 function showNext() {
   current = pickNext();
+  const text = current;
   promptEl.classList.remove("shown");
   const fadeMs = promptEl.textContent ? 700 : 0;
   setTimeout(() => {
-    promptEl.textContent = prompts[current];
+    promptEl.textContent = text;
     promptEl.classList.add("shown");
   }, fadeMs);
 }
@@ -179,7 +212,7 @@ document.getElementById("done").addEventListener("click", () => {
   prompts = items.length ? items : DEFAULT_PROMPTS.slice();
   savePrompts(prompts);
   editor.hidden = true;
-  current = -1;
+  current = null;
   showNext();
 });
 

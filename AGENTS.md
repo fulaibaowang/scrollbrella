@@ -12,9 +12,9 @@ Live: https://fulaibaowang.github.io/scrollbrella/
 
 | Path | Purpose |
 |---|---|
-| `index.html` | Markup: splash (inline SVG logo story), prompt stage, corner buttons, editor sheet |
+| `index.html` | Markup: splash (inline SVG logo story), prompt stage + heart rest state, corner buttons, lists sheet, editor sheet |
 | `style.css` | All styles; colour tokens on `:root`; splash keyframes |
-| `app.js` | Sections: default sets & time windows → storage → main screen (visit flow) → editor → music → splash → offline |
+| `app.js` | Sections: default sets & time windows → storage → main screen (visit flow) → lists sheet → editor → music → splash → offline |
 | `sw.js` | Service worker: caches `ASSETS` at install, serves cache-first, slices byte ranges for audio |
 | `manifest.webmanifest` | Name, standalone display, icons |
 | `icons/icon-*-v2.png` | Home-screen icons (simple cream umbrella on red) |
@@ -24,7 +24,7 @@ Live: https://fulaibaowang.github.io/scrollbrella/
 
 ## Release rules (important)
 
-- **Bump `VERSION` in `sw.js` on every change to a cached file.** Otherwise phones keep serving the old copy. Updates appear on the launch *after* the new worker installs.
+- **Bump `VERSION` in `sw.js` on every change to a cached file.** Otherwise phones keep serving the old copy. Updates appear on the launch *after* the new worker installs, and GitHub's CDN can serve old files for up to ~10 min after a deploy, so a few minutes' delay on the phone is expected.
 - **New file used by the app → add it to `ASSETS` in `sw.js`.**
 - **Changing an icon or the audio → use a new filename** (`-v3`, …) and update `index.html`, `manifest.webmanifest` and `sw.js`. iOS caches home-screen icons by URL; users must delete and re-add the app to see a new icon.
 - Changing `DEFAULT_SETS` or `DEFAULT_WINDOWS` needs no migration: they're only stored once customised, so unchanged users follow new defaults.

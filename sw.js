@@ -2,7 +2,7 @@
 // and served from there, so the app opens instantly with or without a
 // connection. Bump VERSION on every release so phones fetch the new files;
 // the update is picked up in the background and shows on the next launch.
-const VERSION = "v7";
+const VERSION = "v8";
 const CACHE = `scrollbrella-${VERSION}`;
 
 const ASSETS = [

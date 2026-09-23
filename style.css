@@ -64,9 +64,23 @@ button {
 
 #prompt.shown { opacity: 1; }
 
+/* After the closing line the screen fades to near-black; music continues. */
+#dim {
+  position: fixed;
+  inset: 0;
+  background: #05070c;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 3s ease;
+}
+
+body.dim #dim { opacity: 0.85; }
+body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
+
 #edit-open,
 #music-toggle {
   position: fixed;
+  z-index: 1;
   bottom: calc(env(safe-area-inset-bottom) + 12px);
   width: 44px;
   height: 44px;
@@ -227,6 +241,7 @@ button {
 #editor {
   position: fixed;
   inset: 0;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -337,17 +352,27 @@ button {
   font-size: 0.8rem;
 }
 
+.set + .set { margin-top: 22px; }
+
+.set h3,
+.time-section h3 {
+  margin: 0 0 10px 2px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.set h3 span {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
 .time-section {
   margin-top: 22px;
   padding-top: 16px;
   border-top: 1px solid var(--line);
 }
 
-.time-section h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-}
 
 .time-section .hint { margin: 4px 0 0; font-size: 0.85rem; }
 

@@ -75,6 +75,8 @@
     </button>
   </div>
 
+  <div id="dim" aria-hidden="true"></div>
+
   <main id="stage" aria-live="polite">
     <p id="prompt"></p>
   </main>
@@ -105,12 +107,20 @@
       <button id="cancel" class="btn">Cancel</button>
     </div>
     <div class="editor-scroll">
-      <ul id="prompt-list" class="prompt-list"></ul>
-      <button id="add-prompt" class="add-prompt">+ Add a prompt</button>
-      <p class="hint tip">Tip: paste a copied list into any card to add them all at once.</p>
+      <div class="set">
+        <h3>Feelings <span>· shown first</span></h3>
+        <ul id="feel-list" class="prompt-list"></ul>
+        <button id="add-feel" class="add-prompt">+ Add a feeling</button>
+      </div>
+      <div class="set">
+        <h3>Actions <span>· shown second</span></h3>
+        <ul id="act-list" class="prompt-list"></ul>
+        <button id="add-act" class="add-prompt">+ Add an action</button>
+      </div>
+      <p class="hint tip">Each visit: one feeling, one action, then "Put the phone down." Paste a copied list into any card to add them all at once.</p>
       <div class="time-section">
-        <h3>By time of day</h3>
-        <p class="hint">Mixed in during these hours; the first prompt after opening comes from here.</p>
+        <h3>Actions by time of day</h3>
+        <p class="hint">Join the actions during these hours.</p>
         <div id="window-list"></div>
         <button id="add-window" class="add-prompt">+ Add a time window</button>
       </div>

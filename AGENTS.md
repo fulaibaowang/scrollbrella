@@ -4,7 +4,7 @@ Guidance for people and coding agents working on Scrollbrella. (`CLAUDE.md` is a
 
 ## What this is
 
-A calm, installable web app (iPhone home screen) to open instead of doom-scrolling: splash animation → music button → gentle prompts on a gradient. Plain static HTML/CSS/JS with **no build step and no dependencies**, hosted on GitHub Pages from `main` (root).
+A calm, installable web app (iPhone home screen) to open instead of doom-scrolling: splash animation → music button → one feeling, one action, then "Put the phone down. It will still be here." and the screen dims. Plain static HTML/CSS/JS with **no build step and no dependencies**, hosted on GitHub Pages from `main` (root).
 
 Live: https://fulaibaowang.github.io/scrollbrella/
 
@@ -14,7 +14,7 @@ Live: https://fulaibaowang.github.io/scrollbrella/
 |---|---|
 | `index.html` | Markup: splash (inline SVG logo story), prompt stage, corner buttons, editor sheet |
 | `style.css` | All styles; colour tokens on `:root`; splash keyframes |
-| `app.js` | Sections: defaults & time windows → storage → main screen → editor → music → splash → offline |
+| `app.js` | Sections: default sets & time windows → storage → main screen (visit flow) → editor → music → splash → offline |
 | `sw.js` | Service worker: caches `ASSETS` at install, serves cache-first, slices byte ranges for audio |
 | `manifest.webmanifest` | Name, standalone display, icons |
 | `icons/icon-*-v2.png` | Home-screen icons (simple cream umbrella on red) |
@@ -27,7 +27,7 @@ Live: https://fulaibaowang.github.io/scrollbrella/
 - **Bump `VERSION` in `sw.js` on every change to a cached file.** Otherwise phones keep serving the old copy. Updates appear on the launch *after* the new worker installs.
 - **New file used by the app → add it to `ASSETS` in `sw.js`.**
 - **Changing an icon or the audio → use a new filename** (`-v3`, …) and update `index.html`, `manifest.webmanifest` and `sw.js`. iOS caches home-screen icons by URL; users must delete and re-add the app to see a new icon.
-- **Changing `DEFAULT_PROMPTS` → append the previous list to `OLD_DEFAULTS`** in `app.js`, so users with an unmodified saved copy follow the new defaults.
+- Changing `DEFAULT_SETS` or `DEFAULT_WINDOWS` needs no migration: they're only stored once customised, so unchanged users follow new defaults.
 - Pushing to `main` deploys. Check a build with
   `gh api repos/fulaibaowang/scrollbrella/pages/builds/latest --jq '.status + " " + .commit[0:7]'`.
 
@@ -35,11 +35,12 @@ Live: https://fulaibaowang.github.io/scrollbrella/
 
 | Key | Contents |
 |---|---|
-| `scrollbrella.prompts` | User's prompt list; only stored when it differs from the defaults |
+| `scrollbrella.promptSets` | `{feel: [], act: []}`; only stored when it differs from `DEFAULT_SETS` |
+| `scrollbrella.prompts` | Legacy flat list; migrated into sets (known actions → `act`) and removed on next save |
 | `scrollbrella.timeWindows` | `[{start, end, prompts}]` hours 0–24, may cross midnight; only stored when customised |
 | `scrollbrella.music` | `"on"` / `"off"` |
 
-Every storage access is wrapped in `try/catch`; the app must work without storage. The first prompt after launch comes from the active time window (if any), later prompts mix user and time prompts.
+Every storage access is wrapped in `try/catch`; the app must work without storage. A visit is deliberately short (the opposite of a feed): a random feeling, a tap, a random action (actions + active time-window prompts), a tap, the closing line, then taps do nothing and the screen dims. Returning after 60 s away, or saving in the editor, starts a fresh visit.
 
 ## iOS constraints to respect
 

@@ -96,13 +96,14 @@ body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
   fill: var(--red);
 }
 
-#rest.beat .heart { animation: beat 1.4s ease-in-out; }
+/* A slow, calm heartbeat: lub-dub, then a long rest. */
+.heart { animation: heartbeat 2.2s ease-in-out infinite; }
 
-@keyframes beat {
-  0%, 100% { transform: scale(1); }
-  20%      { transform: scale(1.18); }
-  40%      { transform: scale(1); }
-  60%      { transform: scale(1.1); }
+@keyframes heartbeat {
+  0%, 45%, 100% { transform: scale(1); }
+  10%           { transform: scale(1.12); }
+  20%           { transform: scale(1.02); }
+  30%           { transform: scale(1.08); }
 }
 
 .rest-text {
@@ -248,7 +249,7 @@ body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
   font-family: ui-serif, "New York", Georgia, serif;
   font-size: 1.4rem;
   letter-spacing: 0.02em;
-  animation: fadeIn 700ms ease 2.7s both;
+  animation: fadeIn 900ms ease 2.9s both;
 }
 
 /* After the story, the logo fades away and a large music button takes
@@ -258,7 +259,7 @@ body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
   flex-direction: column;
   align-items: center;
   gap: 18px;
-  animation: fadeOut 600ms ease 3.6s both;
+  animation: fadeOut 700ms ease 4.4s both;
 }
 
 .splash-music {
@@ -274,8 +275,8 @@ body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
   border-radius: 50%;
   background: rgba(242, 232, 216, 0.08);
   animation:
-    popIn 800ms ease 4.1s both,
-    breathe 3.2s ease-in-out 4.9s infinite;
+    popIn 800ms ease 5s both,
+    breathe 3.2s ease-in-out 5.8s infinite;
 }
 
 .splash-music svg { width: 64px; height: 64px; }
@@ -287,70 +288,26 @@ body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
   50%      { box-shadow: 0 0 36px 4px rgba(242, 232, 216, 0.16); border-color: var(--muted); transform: scale(1.04); }
 }
 
-/* Splash story (2.8s): the finger scrolls a feed in rhythm, the umbrella
-   pops open as a shield, and the next swipe crashes into it. */
-.s-feed   { animation: feedScroll 2.8s ease-in-out both; }
-.s-finger { animation: fingerScroll 2.8s ease-in-out both; }
-.s-brella { animation: brellaShield 2.8s both; transform-box: fill-box; transform-origin: 50% 40%; }
-.s-speed  { animation: speedLines 2.8s both; }
-.s-burst  { animation: burstPop 2.8s both; transform-origin: 115px 111px; }
+/* Splash: the umbrella slowly opens, from folded to wide. */
+.s-canopy {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: openUmbrella 3s cubic-bezier(.35, 0, .25, 1) .4s both;
+}
 
 @keyframes splashIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* Finger moves along its own (up-left) axis */
-@keyframes fingerScroll {
-  0%, 3.6%  { transform: translate(12px, 13px); }
-  12.5%     { transform: translate(-10px, -11px); }
-  21.4%     { transform: translate(12px, 13px); }
-  30.4%     { transform: translate(-10px, -11px); }
-  39.3%     { transform: translate(12px, 13px); }
-  48.2%     { transform: translate(-10px, -11px); }
-  57.1%, 70% { transform: translate(12px, 13px); }
-  80%       { transform: translate(34px, 37px); animation-timing-function: cubic-bezier(.7, 0, 1, .5); }
-  85%       { transform: translate(-2px, -2px); animation-timing-function: ease-out; }
-  90%       { transform: translate(7px, 8px); }
-  100%      { transform: none; }
-}
-
-@keyframes feedScroll {
-  0%, 3.6%     { transform: translateY(0);      opacity: 1; }
-  12.5%, 21.4% { transform: translateY(-48px);  opacity: 1; }
-  30.4%, 39.3% { transform: translateY(-96px);  opacity: 1; }
-  48.2%, 57.1% { transform: translateY(-144px); opacity: 1; }
-  78%, 100%    { transform: translateY(-144px); opacity: 0; }
-}
-
-@keyframes brellaShield {
-  0%, 57.1% { transform: translateY(-50px) scale(.15, .5); opacity: 0; }
-  60%       { opacity: 1; }
-  66%       { transform: translateY(0) scale(1.12, .95); animation-timing-function: ease-out; }
-  72%       { transform: scale(.97, 1.02); }
-  78%, 85%  { transform: none; }
-  88%       { transform: rotate(-9deg) scale(.96); }
-  92%       { transform: rotate(5deg); }
-  96%       { transform: rotate(-2deg); }
-  100%      { transform: none; opacity: 1; }
-}
-
-@keyframes speedLines {
-  0%, 79%   { opacity: 0; }
-  84%       { opacity: .9; }
-  100%      { opacity: .6; }
-}
-
-@keyframes burstPop {
-  0%, 85%   { transform: scale(0); animation-timing-function: cubic-bezier(.2, 1.8, .4, 1); }
-  93%       { transform: scale(1.25); }
-  100%      { transform: scale(1); }
+@keyframes openUmbrella {
+  0%   { transform: scale(.14, 1.1); }
+  75%  { transform: scale(1.03, .99); }
+  100% { transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .splash-logo, .splash-name, .s-finger, .s-feed, .s-brella, .s-speed, .s-burst, .splash-music { animation: none; }
+  .splash-logo, .splash-name, .s-canopy, .splash-music { animation: none; }
   .splash-brand { display: none; }
-  #rest.beat .heart, #rest, .lists-open { animation: none; }
-  .s-feed { opacity: 0; }
-  .s-speed { opacity: .6; }
+  .heart, #rest, .lists-open { animation: none; }
 }
 
 /* ---- Editor ---- */

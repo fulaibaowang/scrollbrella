@@ -295,17 +295,10 @@ function showRest() {
   clearTimeout(dimTimer);
   document.body.classList.add("dim");
   promptEl.classList.remove("shown");
-  if (!rest.hidden) {
-    // Already resting: the heart just beats once more.
-    rest.classList.remove("beat");
-    void rest.offsetWidth;
-    rest.classList.add("beat");
-    return;
-  }
+  if (!rest.hidden) return; // already resting; the heart keeps beating
   setTimeout(() => {
     promptEl.hidden = true;
     rest.hidden = false;
-    rest.classList.add("beat");
     listsOpen.hidden = false;
   }, 700);
 }

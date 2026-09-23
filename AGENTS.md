@@ -58,7 +58,8 @@ Every storage access is wrapped in `try/catch`; the app must work without storag
 
 - One background: the dusk-blue → teal gradient. No background picker.
 - Home-screen icon stays the simple umbrella on red.
-- Splash story: finger scrolls a feed → umbrella pops open → finger crashes into it (burst + shake) → logo fades → a large breathing music circle waits for the tap.
+- Splash: the umbrella slowly opens (no finger) → logo fades → a large breathing music circle waits for the tap. (The earlier finger-crash story is in git history.)
+- The rest-state heart beats slowly and continuously.
 - Calm, minimal UI: cream text (`--text`), serif prompts, soft outlined pill buttons, 700 ms fades. Respect `prefers-reduced-motion`.
 
 ## Testing locally

@@ -95,7 +95,17 @@
         <h2>Still want to do something?</h2>
         <p class="hint">No need. But if you'd like, you already chose these.</p>
       </div>
-      <button id="lists-close" class="btn">Close</button>
+      <div id="lists-view-buttons" class="head-buttons">
+        <button id="lists-edit" class="btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>
+          Edit
+        </button>
+        <button id="lists-close" class="btn">Close</button>
+      </div>
+      <div id="lists-edit-buttons" class="head-buttons" hidden>
+        <button id="lists-cancel" class="btn">Cancel</button>
+        <button id="lists-done" class="btn primary">Done</button>
+      </div>
     </div>
     <div class="editor-scroll" id="lists-view"></div>
   </section>
@@ -145,7 +155,7 @@
       </div>
       <div class="time-section">
         <h3>Things I could do</h3>
-        <p class="hint">Decided in advance, so there's nothing to search for. Shown only if you ask, after the visit.</p>
+        <p class="hint">Decided in advance, so there's nothing to search for. Shown only if you ask, after a visit.</p>
         <div id="edit-lists"></div>
       </div>
     </div>

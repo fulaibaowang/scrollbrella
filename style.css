@@ -131,6 +131,35 @@ body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
 
 .lists-open[hidden] { display: none; }
 
+.head-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.head-buttons[hidden] { display: none; }
+
+.head-buttons .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.head-buttons svg { width: 15px; height: 15px; }
+
+.list-title {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: 600 16px -apple-system, system-ui, sans-serif;
+}
+
+.list-title:focus { outline: none; border-color: var(--muted); }
+.list-title::placeholder { color: var(--muted); font-weight: 400; }
+
 .list-card {
   margin: 0 0 8px;
   padding: 11px 14px;

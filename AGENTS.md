@@ -37,15 +37,15 @@ Live: https://fulaibaowang.github.io/scrollbrella/
 |---|---|
 | `scrollbrella.promptSets` | `{feel: [], act: []}`; only stored when it differs from `DEFAULT_SETS` |
 | `scrollbrella.prompts` | Legacy flat list; migrated into sets (known actions → `act`) and removed on next save |
-| `scrollbrella.lists` | `{books, shows, dreams}`: "Things I could do", shown only on request after a visit |
+| `scrollbrella.lists` | `[{title, items}]`: "Things I could do" lists (user can add/rename/delete lists); editable from the lists sheet (✎ Edit) and the main editor. Old `{books, shows, dreams}` shape is migrated on load |
 | `scrollbrella.timeWindows` | `[{start, end, prompts}]` hours 0–24, may cross midnight; only stored when customised |
-| `scrollbrella.music` | `"on"` / `"off"` |
 
 Every storage access is wrapped in `try/catch`; the app must work without storage. A visit is deliberately short (the opposite of a feed): feeling (0 s) → small moment from `act` + active time-window prompts (15 s) → closing line (30 s) → dim (40 s). Auto-advance uses `ADVANCE_MS`/`DIM_AFTER_MS` (no visible countdown); a tap skips ahead; paused while the editor is open. Nothing re-brightens on its own. A tap after the visit shows a red heart + "It's okay to do nothing." and a tiny "things I could do" link to the lists sheet. Returning after 60 s away, or saving in the editor, starts a fresh visit.
 
 ## iOS constraints to respect
 
 - Audio can only start from a user tap; `audio.volume` is read-only (change loudness in the file itself).
+- Music starts only from an explicit choice: the splash's music circle or the ♪ corner button. Tapping the splash background continues in silence; no other tap starts music.
 - Safari fetches audio with `Range` requests: the service worker must answer with `206` slices (see `rangeResponse`).
 - Inputs need `font-size: 16px` or iOS zooms on focus. Respect `env(safe-area-inset-*)`.
 - The home-screen app and Safari have separate storage and separate service workers.

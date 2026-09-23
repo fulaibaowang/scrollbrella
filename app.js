@@ -1,7 +1,6 @@
 const LEGACY_PROMPTS_KEY = "scrollbrella.prompts"; // one flat list, before feelings/actions
 const SETS_KEY = "scrollbrella.promptSets";
 const WINDOWS_KEY = "scrollbrella.timeWindows";
-const MUSIC_KEY = "scrollbrella.music";
 const LISTS_KEY = "scrollbrella.lists";
 
 // Each visit shows one feeling, then one small moment ("act"), then the
@@ -25,12 +24,12 @@ const DEFAULT_SETS = {
 
 const CLOSING = "Put the phone down. It will still be here.";
 
-// "Things I could do": pre-decided options, shown only if asked for after a
-// visit, so there's never anything to search for.
-const LIST_KINDS = [
-  { key: "books", title: "My books", add: "+ Add a book" },
-  { key: "shows", title: "My movies & series", add: "+ Add a movie or series" },
-  { key: "dreams", title: "My dreams", add: "+ Add a dream" },
+// "Things I could do": pre-decided lists (books, series, ...), shown only if
+// asked for after a visit, so there's never anything to search for.
+const DEFAULT_LISTS = [
+  { title: "My books", items: [] },
+  { title: "My movies & series", items: [] },
+  { title: "My dreams", items: [] },
 ];
 
 // Time-of-day windows on the phone's clock (hours 0-24; a window may cross
@@ -198,14 +197,25 @@ function saveWindows(windows) {
 }
 
 function loadLists() {
-  const lists = { books: [], shows: [], dreams: [] };
   try {
     const saved = JSON.parse(localStorage.getItem(LISTS_KEY));
-    for (const { key } of LIST_KINDS) lists[key] = strings(saved?.[key]);
+    if (Array.isArray(saved)) {
+      return saved
+        .filter((l) => typeof l?.title === "string")
+        .map((l) => ({ title: l.title.trim() || "Untitled", items: strings(l.items) }));
+    }
+    if (saved && typeof saved === "object") {
+      // First version stored three fixed lists by key.
+      return [
+        { title: "My books", items: strings(saved.books) },
+        { title: "My movies & series", items: strings(saved.shows) },
+        { title: "My dreams", items: strings(saved.dreams) },
+      ];
+    }
   } catch {
-    // Start empty.
+    // Start from the defaults.
   }
-  return lists;
+  return structuredClone(DEFAULT_LISTS);
 }
 
 function saveLists(lists) {
@@ -309,26 +319,30 @@ function restartVisit() {
 
 stage.addEventListener("click", showNext);
 
-// ---- Things I could do (view) ----
+// ---- Things I could do ----
+// A sheet that shows the pre-decided lists; ✎ Edit edits them in place,
+// including adding, renaming and deleting whole lists.
 
 const listsSheet = document.getElementById("lists");
 const listsView = document.getElementById("lists-view");
+const listsViewButtons = document.getElementById("lists-view-buttons");
+const listsEditButtons = document.getElementById("lists-edit-buttons");
 
 function renderListsView() {
   listsView.replaceChildren();
-  for (const { key, title } of LIST_KINDS) {
+  for (const { title, items } of lists) {
     const box = document.createElement("div");
     box.className = "set";
     const h = document.createElement("h3");
     h.textContent = title;
     box.append(h);
-    if (!lists[key].length) {
+    if (!items.length) {
       const empty = document.createElement("p");
       empty.className = "hint";
-      empty.textContent = "Nothing here yet. Add some with ✎ (bottom right).";
+      empty.textContent = "Nothing here yet. Tap ✎ Edit to add some.";
       box.append(empty);
     }
-    for (const text of lists[key]) {
+    for (const text of items) {
       const item = document.createElement("p");
       item.className = "list-card";
       item.textContent = text;
@@ -342,14 +356,91 @@ function renderListsView() {
   listsView.append(sit);
 }
 
-listsOpen.addEventListener("click", () => {
-  renderListsView();
-  listsSheet.hidden = false;
+function makeListEditor(list) {
+  const group = document.createElement("div");
+  group.className = "window-group";
+
+  const head = document.createElement("div");
+  head.className = "window-head";
+  const title = document.createElement("input");
+  title.className = "list-title";
+  title.value = list.title;
+  title.placeholder = "List name";
+  title.setAttribute("aria-label", "List name");
+  const remove = document.createElement("button");
+  remove.className = "prompt-remove";
+  remove.setAttribute("aria-label", "Delete list");
+  remove.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  remove.addEventListener("click", () => group.remove());
+  head.append(title, remove);
+
+  const ul = document.createElement("ul");
+  ul.className = "prompt-list";
+  const add = document.createElement("button");
+  add.className = "add-prompt small";
+  add.textContent = "+ Add an item";
+  add.addEventListener("click", () => addItem("", null, true, ul));
+
+  group.append(head, ul, add);
+  return { group, ul };
+}
+
+// Builds the list editors (used by the sheet and by the main editor).
+function fillListEditors(container, source) {
+  container.replaceChildren();
+  const box = document.createElement("div");
+  box.className = "lists-edit-box";
+  container.append(box);
+  for (const list of source) {
+    const { group, ul } = makeListEditor(list);
+    box.append(group);
+    for (const text of list.items) addItem(text, null, false, ul);
+  }
+  const addList = document.createElement("button");
+  addList.className = "add-prompt";
+  addList.textContent = "+ Add a list";
+  addList.addEventListener("click", () => {
+    const { group } = makeListEditor({ title: "", items: [] });
+    box.append(group);
+    group.querySelector(".list-title").focus();
+  });
+  container.append(addList);
+}
+
+function editedLists(container) {
+  return [...container.querySelectorAll(".lists-edit-box > .window-group")]
+    .map((g) => ({
+      title: g.querySelector(".list-title").value.trim(),
+      items: listValues(g.querySelector("ul")),
+    }))
+    .filter((l) => l.title || l.items.length)
+    .map((l) => ({ title: l.title || "Untitled", items: l.items }));
+}
+
+function setListsMode(editing) {
+  listsViewButtons.hidden = editing;
+  listsEditButtons.hidden = !editing;
+  if (editing) fillListEditors(listsView, lists);
+  else renderListsView();
   listsView.scrollTop = 0;
+}
+
+listsOpen.addEventListener("click", () => {
+  setListsMode(false);
+  listsSheet.hidden = false;
 });
 
 document.getElementById("lists-close").addEventListener("click", () => {
   listsSheet.hidden = true;
+});
+
+document.getElementById("lists-edit").addEventListener("click", () => setListsMode(true));
+document.getElementById("lists-cancel").addEventListener("click", () => setListsMode(false));
+document.getElementById("lists-done").addEventListener("click", () => {
+  lists = editedLists(listsView);
+  saveLists(lists);
+  setListsMode(false);
 });
 
 // ---- Editor ----
@@ -455,6 +546,7 @@ function fillEditor(sets) {
 // ---- Time windows in the editor ----
 
 const windowsBox = document.getElementById("window-list");
+const editLists = document.getElementById("edit-lists");
 
 function hourSelect(value, label) {
   const sel = document.createElement("select");
@@ -531,37 +623,6 @@ function editorWindows() {
     .filter((w) => w.prompts.length && w.start % 24 !== w.end % 24);
 }
 
-// ---- "Things I could do" lists in the editor ----
-
-const editLists = document.getElementById("edit-lists");
-
-function fillEditLists(source) {
-  editLists.replaceChildren();
-  for (const { key, title, add } of LIST_KINDS) {
-    const group = document.createElement("div");
-    group.className = "window-group";
-    const head = document.createElement("p");
-    head.className = "window-head";
-    head.textContent = title;
-    const ul = document.createElement("ul");
-    ul.className = "prompt-list";
-    ul.dataset.list = key;
-    const btn = document.createElement("button");
-    btn.className = "add-prompt small";
-    btn.textContent = add;
-    btn.addEventListener("click", () => addItem("", null, true, ul));
-    group.append(head, ul, btn);
-    editLists.append(group);
-    for (const text of source[key]) addItem(text, null, false, ul);
-  }
-}
-
-function editorLists() {
-  const out = {};
-  for (const ul of editLists.querySelectorAll("ul[data-list]")) out[ul.dataset.list] = listValues(ul);
-  return out;
-}
-
 document.getElementById("add-window").addEventListener("click", () => {
   const g = makeWindow({ start: 12, end: 13, prompts: [] });
   g.querySelector(".add-prompt").click();
@@ -572,7 +633,7 @@ document.getElementById("edit-open").addEventListener("click", () => {
   editor.hidden = false; // visible first so cards can measure their height
   fillEditor(prompts);
   fillWindows(timeWindows);
-  fillEditLists(lists);
+  fillListEditors(editLists, lists);
   editor.querySelector(".editor-scroll").scrollTop = 0;
 });
 
@@ -590,7 +651,7 @@ document.getElementById("done").addEventListener("click", () => {
   saveSets(prompts);
   timeWindows = editorWindows();
   saveWindows(timeWindows);
-  lists = editorLists();
+  lists = editedLists(editLists);
   saveLists(lists);
   editor.hidden = true;
   restartVisit();
@@ -616,46 +677,29 @@ copyBtn.addEventListener("click", async () => {
 });
 
 // ---- Music ----
-// iOS only allows audio to start from a tap, so music (on by default)
-// begins with the first tap anywhere and the speaker button toggles it.
+// Music only starts from an explicit choice: the big circle on the splash or
+// the note button (iOS also requires a tap). Tapping elsewhere never starts it.
 
 const music = document.getElementById("music");
 const musicBtn = document.getElementById("music-toggle");
-
-function readMusicPref() {
-  try {
-    return localStorage.getItem(MUSIC_KEY) !== "off";
-  } catch {
-    return true;
-  }
-}
-
-let wantMusic = readMusicPref();
+let resumeOnReturn = false;
 
 function renderMusicBtn() {
-  musicBtn.setAttribute("aria-pressed", String(wantMusic));
-  musicBtn.setAttribute("aria-label", wantMusic ? "Pause music" : "Play music");
+  const playing = !music.paused;
+  musicBtn.setAttribute("aria-pressed", String(playing));
+  musicBtn.setAttribute("aria-label", playing ? "Pause music" : "Play music");
 }
 
-function playIfWanted() {
-  if (wantMusic && music.paused) music.play().catch(() => {});
+function playMusic() {
+  music.play().catch(() => {});
 }
 
-function setWantMusic(on) {
-  wantMusic = on;
-  try {
-    localStorage.setItem(MUSIC_KEY, on ? "on" : "off");
-  } catch {}
-  renderMusicBtn();
-  if (on) playIfWanted();
+music.addEventListener("play", renderMusicBtn);
+music.addEventListener("pause", renderMusicBtn);
+
+musicBtn.addEventListener("click", () => {
+  if (music.paused) playMusic();
   else music.pause();
-}
-
-musicBtn.addEventListener("click", () => setWantMusic(!wantMusic));
-
-document.addEventListener("click", (e) => {
-  if (e.target.closest("#music-toggle, #editor, #lists")) return;
-  playIfWanted();
 });
 
 // iOS often keeps the app alive in the background; coming back after a
@@ -666,10 +710,11 @@ let hiddenAt = 0;
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     hiddenAt = Date.now();
+    resumeOnReturn = !music.paused;
     music.pause();
     return;
   }
-  playIfWanted();
+  if (resumeOnReturn) playMusic();
   if (splashDone && editor.hidden && listsSheet.hidden && Date.now() - hiddenAt > AWAY_RESET_MS) restartVisit();
 });
 
@@ -681,10 +726,9 @@ const splash = document.getElementById("splash");
 const splashHint = document.getElementById("splash-music");
 let splashDone = false;
 
-// After the story the splash waits on a big music button. Tapping it turns
-// music on (the tap is the gesture iOS needs); tapping anywhere else just
-// continues, playing music only if it's already switched on.
-splashHint.addEventListener("click", () => setWantMusic(true));
+// After the story the splash waits on a big music button. Tapping it starts
+// the music and continues; tapping anywhere else continues in silence.
+splashHint.addEventListener("click", playMusic);
 
 function endSplash() {
   if (splashDone) return;

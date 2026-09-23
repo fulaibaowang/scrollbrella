@@ -1,6 +1,6 @@
 # Scrollbrella
 
-<p align="center"><img src="docs/scrollbrella.gif" width="300" alt="Scrollbrella: a scrolling finger bumps into an umbrella, then a calm prompt appears"></p>
+<p align="center"><img src="docs/scrollbrella.gif" width="300" alt="Scrollbrella: an umbrella slowly opens, then a calm prompt and a softly beating heart"></p>
 
 **An umbrella against doom-scrolling.** Scrollbrella is a tiny home-screen app you open *instead of* YouTube Shorts or social feeds: a calm background, a gentle prompt, and quiet piano. A moment of rest rather than another scroll.
 

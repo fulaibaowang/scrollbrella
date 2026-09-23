@@ -337,44 +337,59 @@ button {
   font-size: 0.8rem;
 }
 
-.builtin {
+.time-section {
   margin-top: 22px;
   padding-top: 16px;
   border-top: 1px solid var(--line);
 }
 
-.builtin h3 {
+.time-section h3 {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
 }
 
-.builtin h3 span {
-  color: var(--muted);
-  font-weight: 400;
+.time-section .hint { margin: 4px 0 0; font-size: 0.85rem; }
+
+.window-group {
+  margin-top: 16px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.08);
 }
 
-.builtin .hint { margin: 4px 0 0; font-size: 0.85rem; }
-
-.builtin-group { margin-top: 14px; }
-
-.builtin-hours {
-  margin: 0 0 6px 2px;
+.window-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px 4px;
   color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.hour-select {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--text);
+  font: 16px -apple-system, system-ui, sans-serif; /* 16px stops iOS zoom-on-focus */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.window-now {
+  flex: 1;
+  color: var(--text);
   font-size: 0.8rem;
-  letter-spacing: 0.02em;
 }
 
-.builtin-group.active .builtin-hours { color: var(--text); }
+.window-now:not(:empty)::before { content: "· "; }
 
-.builtin-card {
-  margin: 0 0 8px;
-  padding: 11px 14px;
-  border: 1px dashed var(--line);
-  border-radius: 14px;
-  color: var(--muted);
-  font-size: 16px;
-  line-height: 1.45;
+.add-prompt.small {
+  padding: 9px;
+  font-size: 0.9rem;
 }
 
 .editor-actions {

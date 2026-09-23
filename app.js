@@ -1,4 +1,5 @@
 const STORAGE_KEY = "scrollbrella.prompts";
+const WINDOWS_KEY = "scrollbrella.timeWindows";
 const MUSIC_KEY = "scrollbrella.music";
 
 const DEFAULT_PROMPTS = [
@@ -13,28 +14,29 @@ const DEFAULT_PROMPTS = [
   "Put the phone down. It will still be here.",
 ];
 
-// Built-in prompts for the time of day on the phone's clock (not editable).
-// Within these hours the first prompt after opening comes from here, and
-// later ones mix into the pool; outside them only the user's list is used.
-const DAY_PROMPTS = [
-  "What's one thing you'd love to do today?",
-  "Close your eyes: what would make today a good day?",
-];
-const EVENING_PROMPTS = [
-  "What's one thing you're grateful for today?",
-  "Winding down. How was your day?",
+// Time-of-day windows on the phone's clock (hours 0-24; a window may cross
+// midnight). Within a window the first prompt after opening comes from it,
+// and later ones mix into the pool.
+const DEFAULT_WINDOWS = [
+  {
+    start: 5,
+    end: 15,
+    prompts: ["What's one thing you'd love to do today?", "Close your eyes: what would make today a good day?"],
+  },
+  {
+    start: 19,
+    end: 24,
+    prompts: ["What's one thing you're grateful for today?", "Winding down. How was your day?"],
+  },
 ];
 
-const TIME_WINDOWS = [
-  { label: "5:00 – 15:00", prompts: DAY_PROMPTS },
-  { label: "19:00 – 24:00", prompts: EVENING_PROMPTS },
-];
+function inWindow(w, h) {
+  return w.start < w.end ? h >= w.start && h < w.end : h >= w.start || h < w.end;
+}
 
 function timePrompts(now = new Date()) {
   const h = now.getHours();
-  if (h >= 5 && h < 15) return DAY_PROMPTS;
-  if (h >= 19) return EVENING_PROMPTS;
-  return [];
+  return timeWindows.filter((w) => inWindow(w, h)).flatMap((w) => w.prompts);
 }
 
 // ---- Storage ----
@@ -104,11 +106,42 @@ function savePrompts(list) {
   navigator.storage?.persist?.().catch(() => {});
 }
 
+function sameWindows(a, b) {
+  return (
+    a.length === b.length &&
+    a.every((w, i) => w.start === b[i].start && w.end === b[i].end && sameList(w.prompts, b[i].prompts))
+  );
+}
+
+function loadWindows() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(WINDOWS_KEY));
+    if (Array.isArray(saved)) {
+      return saved
+        .filter((w) => Number.isInteger(w?.start) && Number.isInteger(w?.end) && Array.isArray(w.prompts))
+        .map((w) => ({ start: w.start, end: w.end, prompts: cleanList(w.prompts.filter((t) => typeof t === "string")) }));
+    }
+  } catch {
+    // Fall back to defaults.
+  }
+  return structuredClone(DEFAULT_WINDOWS);
+}
+
+function saveWindows(windows) {
+  try {
+    if (sameWindows(windows, DEFAULT_WINDOWS)) localStorage.removeItem(WINDOWS_KEY);
+    else localStorage.setItem(WINDOWS_KEY, JSON.stringify(windows));
+  } catch {
+    // Storage blocked; windows still apply for this session.
+  }
+}
+
 // ---- Main screen ----
 
 const stage = document.getElementById("stage");
 const promptEl = document.getElementById("prompt");
 let prompts = loadPrompts();
+let timeWindows = loadWindows();
 let current = null; // text currently shown; null before the first prompt
 
 function randomFrom(list) {
@@ -203,10 +236,10 @@ function makeItem(text) {
   return li;
 }
 
-function addItem(text, after = null, focus = true) {
+function addItem(text, after = null, focus = true, into = list) {
   const li = makeItem(text);
   if (after) after.after(li);
-  else list.append(li);
+  else into.append(li);
   const input = li.querySelector(".prompt-input");
   autoGrow(input);
   if (focus) {
@@ -223,31 +256,94 @@ function fillEditor(items) {
   updateCount();
 }
 
-function renderBuiltins() {
-  const box = document.getElementById("builtin-list");
-  const active = timePrompts();
-  box.replaceChildren();
-  for (const { label, prompts: items } of TIME_WINDOWS) {
-    const group = document.createElement("div");
-    group.className = "builtin-group" + (items === active ? " active" : "");
-    const title = document.createElement("p");
-    title.className = "builtin-hours";
-    title.textContent = items === active ? `${label} · now` : label;
-    group.append(title);
-    for (const text of items) {
-      const card = document.createElement("p");
-      card.className = "builtin-card";
-      card.textContent = text;
-      group.append(card);
-    }
-    box.append(group);
+// ---- Time windows in the editor ----
+
+const windowsBox = document.getElementById("window-list");
+
+function hourSelect(value, label) {
+  const sel = document.createElement("select");
+  sel.className = "hour-select";
+  sel.setAttribute("aria-label", label);
+  for (let h = 0; h <= 24; h++) {
+    const opt = document.createElement("option");
+    opt.value = h;
+    opt.textContent = `${String(h).padStart(2, "0")}:00`;
+    sel.append(opt);
   }
+  sel.value = value;
+  return sel;
 }
 
+function makeWindow(w) {
+  const group = document.createElement("div");
+  group.className = "window-group";
+
+  const head = document.createElement("div");
+  head.className = "window-head";
+  const from = hourSelect(w.start, "From");
+  const to = hourSelect(w.end, "To");
+  const now = document.createElement("span");
+  now.className = "window-now";
+  const refreshNow = () => {
+    now.textContent = inWindow({ start: +from.value, end: +to.value }, new Date().getHours()) ? "now" : "";
+  };
+  from.addEventListener("change", refreshNow);
+  to.addEventListener("change", refreshNow);
+  refreshNow();
+
+  const remove = document.createElement("button");
+  remove.className = "prompt-remove";
+  remove.setAttribute("aria-label", "Delete time window");
+  remove.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  remove.addEventListener("click", () => group.remove());
+
+  const fromLabel = document.createElement("span");
+  fromLabel.textContent = "From";
+  const toLabel = document.createElement("span");
+  toLabel.textContent = "to";
+  head.append(fromLabel, from, toLabel, to, now, remove);
+
+  const ul = document.createElement("ul");
+  ul.className = "prompt-list";
+  const add = document.createElement("button");
+  add.className = "add-prompt small";
+  add.textContent = "+ Add a prompt";
+  add.addEventListener("click", () => addItem("", null, true, ul));
+
+  group.append(head, ul, add);
+  windowsBox.append(group);
+  for (const text of w.prompts) addItem(text, null, false, ul);
+  return group;
+}
+
+function fillWindows(windows) {
+  windowsBox.replaceChildren();
+  for (const w of windows) makeWindow(w);
+}
+
+function editorWindows() {
+  return [...windowsBox.querySelectorAll(".window-group")]
+    .map((g) => {
+      const [from, to] = g.querySelectorAll(".hour-select");
+      return {
+        start: Number(from.value),
+        end: Number(to.value),
+        prompts: cleanList([...g.querySelectorAll(".prompt-input")].map((el) => el.value)),
+      };
+    })
+    .filter((w) => w.prompts.length && w.start % 24 !== w.end % 24);
+}
+
+document.getElementById("add-window").addEventListener("click", () => {
+  const g = makeWindow({ start: 12, end: 13, prompts: [] });
+  g.querySelector(".add-prompt").click();
+});
+
 document.getElementById("edit-open").addEventListener("click", () => {
-  renderBuiltins();
   editor.hidden = false; // visible first so cards can measure their height
   fillEditor(prompts);
+  fillWindows(timeWindows);
   list.scrollTop = 0;
 });
 
@@ -261,14 +357,17 @@ document.getElementById("done").addEventListener("click", () => {
   const items = editorValues();
   prompts = items.length ? items : DEFAULT_PROMPTS.slice();
   savePrompts(prompts);
+  timeWindows = editorWindows();
+  saveWindows(timeWindows);
   editor.hidden = true;
   current = null;
   showNext();
 });
 
 document.getElementById("restore").addEventListener("click", () => {
-  if (confirm("Replace your list with the default prompts? (Nothing is saved until you tap Done.)")) {
+  if (confirm("Replace your prompts and time windows with the defaults? (Nothing is saved until you tap Done.)")) {
     fillEditor(DEFAULT_PROMPTS);
+    fillWindows(DEFAULT_WINDOWS);
   }
 });
 

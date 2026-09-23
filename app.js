@@ -38,12 +38,47 @@ function cleanList(lines) {
   return lines.map((s) => s.trim()).filter(Boolean);
 }
 
+function sameList(a, b) {
+  return a.length === b.length && a.every((t, i) => t === b[i]);
+}
+
+// Earlier releases' default lists. A saved copy of one of these was never
+// customised, so it follows the current defaults instead.
+const OLD_DEFAULTS = [
+  [
+    "Breathe in slowly. Breathe out slower.",
+    "Nothing here is urgent.",
+    "Look out a window for a moment.",
+    "You don't need to catch up on anything.",
+    "Unclench your jaw. Drop your shoulders.",
+    "What do you actually want to do right now?",
+    "Stand up and stretch.",
+    "Drink a glass of water.",
+    "It's okay to be bored.",
+    "Notice three sounds around you.",
+    "Rest is not wasted time.",
+    "Put the phone down. It will still be here.",
+  ],
+  [
+    "Breathe in slowly. Breathe out slower.",
+    "Nothing here is urgent.",
+    "Look at the sky for a moment.",
+    "You don't need to catch up on anything.",
+    "Stand up and stretch.",
+    "Drink a glass of water.",
+    "It's okay to be bored.",
+    "Listen for the trees, the leaves, the wind.",
+    "Rest is not wasted time.",
+    "Put the phone down. It will still be here.",
+  ],
+];
+
 function loadPrompts() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (Array.isArray(saved)) {
       const list = cleanList(saved.filter((s) => typeof s === "string"));
-      if (list.length) return list;
+      if (list.length && !OLD_DEFAULTS.some((old) => sameList(old, list))) return list;
     }
   } catch {
     // Unreadable or unavailable storage: fall back to defaults.
@@ -51,9 +86,12 @@ function loadPrompts() {
   return DEFAULT_PROMPTS.slice();
 }
 
+// Only a customised list is stored, so unchanged defaults keep following
+// new releases.
 function savePrompts(list) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    if (sameList(list, DEFAULT_PROMPTS)) localStorage.removeItem(STORAGE_KEY);
+    else localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   } catch {
     // Storage blocked; prompts still apply for this session.
   }

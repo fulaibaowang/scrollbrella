@@ -904,7 +904,7 @@ musicBtn.addEventListener("click", () => {
 
 // iOS often keeps the app alive in the background; coming back after a
 // while starts a fresh visit instead of the dimmed closing screen.
-const AWAY_RESET_MS = 60 * 1000;
+const AWAY_RESET_MS = 10 * 60 * 1000;
 let hiddenAt = 0;
 
 document.addEventListener("visibilitychange", () => {

@@ -439,6 +439,21 @@ body.dim #prompt.shown { opacity: 0.4; transition-duration: 3s; }
 
 .time-section .hint { margin: 4px 0 0; font-size: 0.85rem; }
 
+.advanced { margin-top: 22px; }
+
+.advanced summary {
+  display: inline-block;
+  padding: 6px 2px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.advanced summary::-webkit-details-marker { display: none; }
+.advanced summary::after { content: " ›"; }
+.advanced[open] summary::after { content: " ⌄"; }
+
 .window-group {
   margin-top: 16px;
   padding: 10px;

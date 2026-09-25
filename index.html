@@ -110,35 +110,38 @@
         <ul id="act-list" class="prompt-list"></ul>
         <button id="add-act" class="add-prompt">+ Add a small moment</button>
       </div>
-      <p class="hint tip">Each visit: one feeling, one small moment, then "Put the phone down." Paste a copied list into any card to add them all at once.</p>
+      <p class="hint tip">Tip: paste a list to add many at once.</p>
       <div class="time-section">
         <h3>Small moments by time of day</h3>
-        <p class="hint">Join the small moments during these hours.</p>
+        <p class="hint">Extra moments that only show up at certain hours.</p>
         <div id="window-list"></div>
         <button id="add-window" class="add-prompt">+ Add a time window</button>
       </div>
       <div class="time-section">
         <h3>Things I could do</h3>
-        <p class="hint">Decided in advance, so there's nothing to search for. Shown only if you ask, after a visit.</p>
+        <p class="hint">Ideas for when you want something to do. They stay hidden unless you ask.</p>
         <div id="edit-lists"></div>
       </div>
-      <div class="time-section">
-        <h3>Sync across devices</h3>
-        <div id="sync-off">
-          <p class="hint">Keep prompts and lists the same on all your devices, stored in a secret Gist on your GitHub account. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a> with only <b>Gists: Read and write</b> (and an expiry), then paste it here on each device.</p>
-          <div class="sync-row">
-            <input id="sync-token" class="sync-input" type="password" placeholder="github_pat_…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="GitHub token">
-            <button id="sync-connect" class="btn">Connect</button>
+      <details class="advanced">
+        <summary>Advanced settings</summary>
+        <div class="time-section">
+          <h3>Sync across devices</h3>
+          <div id="sync-off">
+            <p class="hint">Have the same prompts and lists on all your devices. Needs a free GitHub account: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">create a key</a> with <b>Gists: Read and write</b> turned on, then paste it here on each device.</p>
+            <div class="sync-row">
+              <input id="sync-token" class="sync-input" type="password" placeholder="github_pat_…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="GitHub token">
+              <button id="sync-connect" class="btn">Connect</button>
+            </div>
+          </div>
+          <div id="sync-on" hidden>
+            <p id="sync-status" class="hint"></p>
+            <div class="sync-row">
+              <button id="sync-now" class="btn">Sync now</button>
+              <button id="sync-disconnect" class="btn">Disconnect</button>
+            </div>
           </div>
         </div>
-        <div id="sync-on" hidden>
-          <p id="sync-status" class="hint"></p>
-          <div class="sync-row">
-            <button id="sync-now" class="btn">Sync now</button>
-            <button id="sync-disconnect" class="btn">Disconnect</button>
-          </div>
-        </div>
-      </div>
+      </details>
     </div>
     <div class="editor-actions">
       <button id="copy" class="btn">Copy all</button>

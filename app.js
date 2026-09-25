@@ -641,6 +641,7 @@ document.getElementById("edit-open").addEventListener("click", () => {
   fillEditor(prompts);
   fillWindows(timeWindows);
   fillListEditors(editLists, lists);
+  editor.querySelector(".advanced").open = false;
   editor.querySelector(".editor-scroll").scrollTop = 0;
 });
 
